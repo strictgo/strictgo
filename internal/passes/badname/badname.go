@@ -29,19 +29,41 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 	inspector.Preorder(filter, func(n ast.Node) {
 		spec := n.(*ast.ValueSpec)
-		if _, ok := spec.Type.(*ast.MapType); !ok {
-			return
-		}
-		for _, name := range spec.Names {
-			if strings.HasSuffix(name.Name, "Map") {
-				pass.Reportf(
-					name.Pos(),
-					"variable %q unnecessarily contains type information with suffix %q",
-					name.Name,
-					"Map",
-				)
-			}
-		}
+		handleMaps(pass, spec)
+		handleStrings(pass, spec)
 	})
 	return nil, nil
+}
+
+func handleStrings(pass *analysis.Pass, spec *ast.ValueSpec) {
+	ident, ok := spec.Type.(*ast.Ident)
+	if !ok || ident.Name != "string" {
+		return
+	}
+	for _, name := range spec.Names {
+		if strings.HasSuffix(name.Name, "Str") {
+			pass.Reportf(
+				name.Pos(),
+				"variable %q unnecessarily contains type information with suffix %q",
+				name.Name,
+				"Str",
+			)
+		}
+	}
+}
+
+func handleMaps(pass *analysis.Pass, spec *ast.ValueSpec) {
+	if _, ok := spec.Type.(*ast.MapType); !ok {
+		return
+	}
+	for _, name := range spec.Names {
+		if strings.HasSuffix(name.Name, "Map") {
+			pass.Reportf(
+				name.Pos(),
+				"variable %q unnecessarily contains type information with suffix %q",
+				name.Name,
+				"Map",
+			)
+		}
+	}
 }
