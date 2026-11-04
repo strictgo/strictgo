@@ -1,0 +1,74 @@
+package a
+
+func guard(a, b bool) int {
+	{
+		// want "replace boolean switch"
+		if a {
+			return 1
+		}
+		if b {
+			return 2
+		}
+		{
+			return 3
+		}
+	}
+}
+
+func tagged(b bool) {
+	{
+		// want "replace boolean switch"
+		x := b
+		strictgoSwitch := x
+		if strictgoSwitch == (true) {
+			println("true")
+		} else {
+			if strictgoSwitch == (false) {
+				println("false")
+			} else {
+				{
+					println("default")
+				}
+			}
+		}
+	}
+}
+
+func breaks(b bool) {
+	switch b { // want "replace boolean switch"
+	case true:
+		break
+	}
+	switch { // want "replace boolean switch"
+	case b:
+		fallthrough
+	default:
+	}
+	switch 1 {
+	case 1:
+	}
+	var x any
+	switch x.(type) {
+	case bool:
+	}
+}
+
+type flag bool
+
+func multiple(a, b bool) {
+	{
+		// want "replace boolean switch"
+		if (a) || (b) {
+			// Keep the selected body and its comments.
+			println("matched")
+		}
+	}
+}
+
+func empty(b flag) {
+	{
+		// want "replace boolean switch"
+		strictgoSwitch := b
+		_ = strictgoSwitch
+	}
+}
