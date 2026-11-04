@@ -5,6 +5,7 @@ import (
 	"github.com/konradreiche/strictgo/internal/passes/boolswitch"
 	"github.com/konradreiche/strictgo/internal/passes/keepflat"
 	"github.com/konradreiche/strictgo/internal/passes/limitscope"
+	"github.com/konradreiche/strictgo/internal/passes/nilresult"
 	"github.com/konradreiche/strictgo/internal/passes/returnstruct"
 	"golang.org/x/tools/go/analysis/multichecker"
 )
@@ -15,6 +16,7 @@ func main() {
 		boolswitch.Analyzer,
 		keepflat.Analyzer,
 		limitscope.Analyzer,
+		nilresult.Analyzer,
 		returnstruct.Analyzer,
 	)
 }
