@@ -12,6 +12,7 @@ import (
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
 	"golang.org/x/tools/go/ast/inspector"
+	"golang.org/x/tools/go/types/typeutil"
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -27,24 +28,27 @@ func run(pass *analysis.Pass) (any, error) {
 		// explicit check: should never be false due to inspect.Analyzer dependency
 		return nil, fmt.Errorf("unexpected type: %T", pass.ResultOf[inspect.Analyzer])
 	}
-	receivers := make(map[types.Object]bool)
+	exemptVariables := make(map[types.Object]bool)
 	filter := []ast.Node{
+		(*ast.CallExpr)(nil),
 		(*ast.FuncDecl)(nil),
 		(*ast.Ident)(nil),
 		(*ast.ValueSpec)(nil),
 	}
 	inspector.Preorder(filter, func(node ast.Node) {
 		switch node := node.(type) {
+		case *ast.CallExpr:
+			exemptSortParameters(pass.TypesInfo, node, exemptVariables)
 		case *ast.FuncDecl:
 			if node.Recv != nil {
 				for _, field := range node.Recv.List {
 					for _, name := range field.Names {
-						receivers[pass.TypesInfo.Defs[name]] = true
+						exemptVariables[pass.TypesInfo.Defs[name]] = true
 					}
 				}
 			}
 		case *ast.Ident:
-			handleSingleLetter(pass, node, receivers)
+			handleSingleLetter(pass, node, exemptVariables)
 		case *ast.ValueSpec:
 			handleMaps(pass, node)
 			handleStrings(pass, node)
@@ -58,13 +62,33 @@ func run(pass *analysis.Pass) (any, error) {
 // prevents unused or rarely used variables from appearing artificially local.
 const maxShortScopeLines = 7
 
-func handleSingleLetter(pass *analysis.Pass, name *ast.Ident, receivers map[types.Object]bool) {
+// Only the comparator's parameters are exempt, not its local variables or
+// parameters of functions nested inside it. Resolve the callee by identity so
+// import aliases work and unrelated functions named Slice are not exempt.
+func exemptSortParameters(info *types.Info, call *ast.CallExpr, exemptVariables map[types.Object]bool) {
+	callee := typeutil.StaticCallee(info, call)
+	if callee == nil || callee.Pkg() == nil || callee.Pkg().Path() != "sort" ||
+		(callee.Name() != "Slice" && callee.Name() != "SliceStable") || len(call.Args) != 2 {
+		return
+	}
+	callback, ok := ast.Unparen(call.Args[1]).(*ast.FuncLit)
+	if !ok {
+		return
+	}
+	for _, field := range callback.Type.Params.List {
+		for _, name := range field.Names {
+			exemptVariables[info.Defs[name]] = true
+		}
+	}
+}
+
+func handleSingleLetter(pass *analysis.Pass, name *ast.Ident, exemptVariables map[types.Object]bool) {
 	letter, size := utf8.DecodeRuneInString(name.Name)
 	if size != len(name.Name) || !unicode.IsLetter(letter) {
 		return
 	}
 	variable, ok := pass.TypesInfo.Defs[name].(*types.Var)
-	if !ok || variable.IsField() || receivers[variable] || conventionalTestingName(variable) {
+	if !ok || variable.IsField() || exemptVariables[variable] || conventionalTestingName(variable) {
 		return
 	}
 	scope := variable.Parent()

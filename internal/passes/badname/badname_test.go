@@ -7,5 +7,5 @@ import (
 )
 
 func TestAnalyzer(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), Analyzer, "a", "globals", "testingnames")
+	analysistest.Run(t, analysistest.TestData(), Analyzer, "a", "globals", "testingnames", "sortnames")
 }
