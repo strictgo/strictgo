@@ -48,7 +48,9 @@ func run(pass *analysis.Pass) (any, error) {
 				}
 			}
 		case *ast.Ident:
-			handleSingleLetter(pass, node, exemptVariables)
+			if !handleErrorName(pass, node) {
+				handleSingleLetter(pass, node, exemptVariables)
+			}
 		case *ast.ValueSpec:
 			handleMaps(pass, node)
 			handleStrings(pass, node)
@@ -80,6 +82,18 @@ func exemptSortParameters(info *types.Info, call *ast.CallExpr, exemptVariables 
 			exemptVariables[info.Defs[name]] = true
 		}
 	}
+}
+
+// Report only declarations, including parameters and named results. Fields and
+// discarded results are not local error names, and aliases of error still count.
+func handleErrorName(pass *analysis.Pass, name *ast.Ident) bool {
+	variable, ok := pass.TypesInfo.Defs[name].(*types.Var)
+	if !ok || variable.IsField() || name.Name == "_" || name.Name == "err" ||
+		!types.Identical(variable.Type(), types.Universe.Lookup("error").Type()) {
+		return false
+	}
+	pass.Reportf(name.Pos(), "error variable %q should be named err", name.Name)
+	return true
 }
 
 func handleSingleLetter(pass *analysis.Pass, name *ast.Ident, exemptVariables map[types.Object]bool) {

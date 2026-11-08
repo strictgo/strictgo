@@ -72,7 +72,11 @@ func run(pass *analysis.Pass) (any, error) {
 			typeName := types.TypeString(obj.Type(), qualifier)
 			// A predeclared type or import qualifier may be shadowed here.
 			resolved, err := types.Eval(pass.Fset, pass.Pkg, start, typeName)
-			if fix && err == nil && resolved.IsType() && types.Identical(resolved.Type, obj.Type()) {
+			if err != nil {
+				pass.Report(diagnostic)
+				return
+			}
+			if fix && resolved.IsType() && types.Identical(resolved.Type, obj.Type()) {
 				replacement := prefix + name.Name + " " + typeName
 				diagnostic.SuggestedFixes = []analysis.SuggestedFix{{
 					Message:   "Use a var declaration",

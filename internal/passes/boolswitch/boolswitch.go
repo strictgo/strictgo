@@ -170,7 +170,10 @@ func rewrite(pass *analysis.Pass, sw *ast.SwitchStmt, source []byte) ([]byte, bo
 	// A block preserves initializer scope and case-local declarations.
 	replacement := "{\n" + strings.TrimSpace(prefix.String()+result) + "\n}"
 	formatted, err := format.Source([]byte(replacement))
-	return formatted, err == nil
+	if err != nil {
+		return formatted, false
+	}
+	return formatted, true
 }
 
 func returns(body []ast.Stmt) bool {
