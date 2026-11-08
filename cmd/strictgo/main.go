@@ -7,6 +7,7 @@ import (
 	"github.com/konradreiche/strictgo/internal/passes/limitscope"
 	"github.com/konradreiche/strictgo/internal/passes/nilresult"
 	"github.com/konradreiche/strictgo/internal/passes/returnstruct"
+	"github.com/konradreiche/strictgo/internal/passes/zeroinit"
 	"golang.org/x/tools/go/analysis/multichecker"
 )
 
@@ -18,5 +19,6 @@ func main() {
 		limitscope.Analyzer,
 		nilresult.Analyzer,
 		returnstruct.Analyzer,
+		zeroinit.Analyzer,
 	)
 }

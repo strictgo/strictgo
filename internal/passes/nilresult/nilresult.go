@@ -36,7 +36,7 @@ func run(pass *analysis.Pass) (any, error) {
 		if results.Len() != 2 || !types.Identical(results.At(1).Type(), errorType) {
 			continue
 		}
-		structResult := false
+		var structResult bool
 		switch results.At(0).Type().Underlying().(type) {
 		case *types.Pointer:
 		case *types.Struct:
@@ -256,7 +256,7 @@ func isNil(value ssa.Value, block *ssa.BasicBlock, seen map[visit]bool) bool {
 		if !ok || !constant.IsNil() {
 			continue
 		}
-		edge := 0
+		var edge int
 		if comparison.Op == token.NEQ {
 			edge = 1
 		}

@@ -110,7 +110,7 @@ func implementsExternalMethod(method *types.Func, interfaces []*types.Interface)
 		candidates = append(candidates, types.NewPointer(receiver))
 	}
 	for _, iface := range interfaces {
-		required := false
+		var required bool
 		for i := 0; i < iface.NumMethods(); i++ {
 			if iface.Method(i).Id() == method.Id() {
 				required = true

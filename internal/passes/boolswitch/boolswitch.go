@@ -78,7 +78,7 @@ func rewrite(pass *analysis.Pass, sw *ast.SwitchStmt, source []byte) ([]byte, bo
 		if i > 0 {
 			name = fmt.Sprintf("strictgoSwitch%d", i)
 		}
-		used := false
+		var used bool
 		for id := range pass.TypesInfo.Defs {
 			if id.Name == name {
 				used = true
@@ -100,7 +100,7 @@ func rewrite(pass *analysis.Pass, sw *ast.SwitchStmt, source []byte) ([]byte, bo
 				if comment.Pos() < sw.Pos() || comment.End() > sw.End() {
 					continue
 				}
-				inBody := false
+				var inBody bool
 				for i, stmt := range sw.Body.List {
 					clause := stmt.(*ast.CaseClause)
 					end := sw.Body.Rbrace
@@ -128,7 +128,7 @@ func rewrite(pass *analysis.Pass, sw *ast.SwitchStmt, source []byte) ([]byte, bo
 		returns         bool
 	}
 	var branches []branch
-	fallback := ""
+	var fallback string
 	for i, stmt := range sw.Body.List {
 		clause := stmt.(*ast.CaseClause)
 		end := sw.Body.Rbrace
