@@ -7,6 +7,7 @@ import (
 	"go/format"
 	"go/token"
 	"go/types"
+	"slices"
 	"strings"
 
 	"golang.org/x/tools/go/analysis"
@@ -21,8 +22,8 @@ var Analyzer = &analysis.Analyzer{
 func run(pass *analysis.Pass) (any, error) {
 	for _, file := range pass.Files {
 		var source []byte
-		ast.Inspect(file, func(n ast.Node) bool {
-			sw, ok := n.(*ast.SwitchStmt)
+		ast.Inspect(file, func(node ast.Node) bool {
+			sw, ok := node.(*ast.SwitchStmt)
 			if !ok {
 				return true
 			}
@@ -36,19 +37,19 @@ func run(pass *analysis.Pass) (any, error) {
 					return true
 				}
 			}
-			d := analysis.Diagnostic{Pos: sw.Switch, End: sw.End(), Message: "replace boolean switch with if statements and early returns"}
+			diagnostic := analysis.Diagnostic{Pos: sw.Switch, End: sw.End(), Message: "replace boolean switch with if statements and early returns"}
 			if source == nil {
 				var err error
 				source, err = pass.ReadFile(pass.Fset.Position(file.Pos()).Filename)
 				if err != nil {
-					pass.Report(d)
+					pass.Report(diagnostic)
 					return true
 				}
 			}
 			if replacement, ok := rewrite(pass, sw, source); ok {
-				d.SuggestedFixes = []analysis.SuggestedFix{{Message: "Replace with if statements", TextEdits: []analysis.TextEdit{{Pos: sw.Pos(), End: sw.End(), NewText: replacement}}}}
+				diagnostic.SuggestedFixes = []analysis.SuggestedFix{{Message: "Replace with if statements", TextEdits: []analysis.TextEdit{{Pos: sw.Pos(), End: sw.End(), NewText: replacement}}}}
 			}
-			pass.Report(d)
+			pass.Report(diagnostic)
 			return true
 		})
 	}
@@ -57,8 +58,8 @@ func run(pass *analysis.Pass) (any, error) {
 
 func rewrite(pass *analysis.Pass, sw *ast.SwitchStmt, source []byte) ([]byte, bool) {
 	safe := true
-	ast.Inspect(sw.Body, func(n ast.Node) bool {
-		switch n.(type) {
+	ast.Inspect(sw.Body, func(node ast.Node) bool {
+		switch node.(type) {
 		case *ast.BranchStmt, *ast.LabeledStmt:
 			safe = false
 		case *ast.FuncLit:
@@ -74,10 +75,8 @@ func rewrite(pass *analysis.Pass, sw *ast.SwitchStmt, source []byte) ([]byte, bo
 	}
 	// Choose a fresh identifier even when a case body introduces its own names.
 	name := "strictgoSwitch"
-	for i := 0; ; i++ {
-		if i > 0 {
-			name = fmt.Sprintf("strictgoSwitch%d", i)
-		}
+	var suffix int
+	for {
 		var used bool
 		for id := range pass.TypesInfo.Defs {
 			if id.Name == name {
@@ -92,6 +91,8 @@ func rewrite(pass *analysis.Pass, sw *ast.SwitchStmt, source []byte) ([]byte, bo
 		if !used {
 			break
 		}
+		suffix++
+		name = fmt.Sprintf("strictgoSwitch%d", suffix)
 	}
 	var prefix strings.Builder
 	for _, file := range pass.Files {
@@ -101,11 +102,11 @@ func rewrite(pass *analysis.Pass, sw *ast.SwitchStmt, source []byte) ([]byte, bo
 					continue
 				}
 				var inBody bool
-				for i, stmt := range sw.Body.List {
+				for index, stmt := range sw.Body.List {
 					clause := stmt.(*ast.CaseClause)
 					end := sw.Body.Rbrace
-					if i+1 < len(sw.Body.List) {
-						end = sw.Body.List[i+1].Pos()
+					if index+1 < len(sw.Body.List) {
+						end = sw.Body.List[index+1].Pos()
 					}
 					if comment.Pos() > clause.Colon && comment.End() <= end {
 						inBody = true
@@ -129,11 +130,11 @@ func rewrite(pass *analysis.Pass, sw *ast.SwitchStmt, source []byte) ([]byte, bo
 	}
 	var branches []branch
 	var fallback string
-	for i, stmt := range sw.Body.List {
+	for index, stmt := range sw.Body.List {
 		clause := stmt.(*ast.CaseClause)
 		end := sw.Body.Rbrace
-		if i+1 < len(sw.Body.List) {
-			end = sw.Body.List[i+1].Pos()
+		if index+1 < len(sw.Body.List) {
+			end = sw.Body.List[index+1].Pos()
 		}
 		body := strings.TrimSpace(text(clause.Colon+1, end))
 		if clause.List == nil {
@@ -154,14 +155,13 @@ func rewrite(pass *analysis.Pass, sw *ast.SwitchStmt, source []byte) ([]byte, bo
 		prefix.WriteString("_ = " + name + "\n")
 	}
 	result := fallback
-	for i := len(branches) - 1; i >= 0; i-- {
-		b := branches[i]
-		head := "if " + b.condition + " {\n" + b.body + "\n}"
+	for _, branch := range slices.Backward(branches) {
+		head := "if " + branch.condition + " {\n" + branch.body + "\n}"
 		if result == "" {
 			result = head + "\n"
 			continue
 		}
-		if b.returns {
+		if branch.returns {
 			result = head + "\n" + result
 			continue
 		}

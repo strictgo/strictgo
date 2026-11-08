@@ -111,8 +111,8 @@ func implementsExternalMethod(method *types.Func, interfaces []*types.Interface)
 	}
 	for _, iface := range interfaces {
 		var required bool
-		for i := 0; i < iface.NumMethods(); i++ {
-			if iface.Method(i).Id() == method.Id() {
+		for interfaceMethod := range iface.Methods() {
+			if interfaceMethod.Id() == method.Id() {
 				required = true
 				break
 			}

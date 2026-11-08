@@ -5,6 +5,7 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
+	"slices"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/buildssa"
@@ -90,18 +91,18 @@ func isZero(value ssa.Value, block *ssa.BasicBlock, seen map[visit]bool) bool {
 	}
 	seen[key] = true
 	defer delete(seen, key)
-	if c, ok := value.(*ssa.Const); ok {
+	if constantValue, ok := value.(*ssa.Const); ok {
 		// SSA also represents zero structs and arrays with a nil Value.
-		if c.Value == nil {
+		if constantValue.Value == nil {
 			return true
 		}
-		switch c.Value.Kind() {
+		switch constantValue.Value.Kind() {
 		case constant.Bool:
-			return !constant.BoolVal(c.Value)
+			return !constant.BoolVal(constantValue.Value)
 		case constant.String:
-			return constant.StringVal(c.Value) == ""
+			return constant.StringVal(constantValue.Value) == ""
 		case constant.Int, constant.Float, constant.Complex:
-			return constant.Compare(c.Value, token.EQL, constant.MakeInt64(0))
+			return constant.Compare(constantValue.Value, token.EQL, constant.MakeInt64(0))
 		}
 	}
 	switch value := value.(type) {
@@ -192,8 +193,7 @@ func loadedValueIs(load *ssa.UnOp, prove func(ssa.Value, *ssa.BasicBlock, map[vi
 		}
 		visiting[block] = true
 		defer delete(visiting, block)
-		for i := end - 1; i >= 0; i-- {
-			instruction := block.Instrs[i]
+		for _, instruction := range slices.Backward(block.Instrs[:end]) {
 			if store, ok := instruction.(*ssa.Store); ok && store.Addr == alloc {
 				return prove(store.Val, block, seen)
 			}

@@ -33,8 +33,8 @@ func run(pass *analysis.Pass) (any, error) {
 }
 
 func check(pass *analysis.Pass, list []ast.Stmt) {
-	for i := range len(list) - 1 {
-		assign, ok := list[i].(*ast.AssignStmt)
+	for index := range len(list) - 1 {
+		assign, ok := list[index].(*ast.AssignStmt)
 		if !ok {
 			continue
 		}
@@ -48,7 +48,7 @@ func check(pass *analysis.Pass, list []ast.Stmt) {
 			continue
 		}
 
-		ifStmt, ok := list[i+1].(*ast.IfStmt)
+		ifStmt, ok := list[index+1].(*ast.IfStmt)
 		if !ok {
 			continue
 		}

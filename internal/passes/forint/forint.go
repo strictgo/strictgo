@@ -16,8 +16,8 @@ var Analyzer = &analysis.Analyzer{
 
 func run(pass *analysis.Pass) (any, error) {
 	for _, file := range pass.Files {
-		ast.Inspect(file, func(n ast.Node) bool {
-			loop, ok := n.(*ast.ForStmt)
+		ast.Inspect(file, func(node ast.Node) bool {
+			loop, ok := node.(*ast.ForStmt)
 			if !ok {
 				return true
 			}
