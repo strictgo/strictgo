@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/konradreiche/strictgo/internal/passes/badname"
 	"github.com/konradreiche/strictgo/internal/passes/boolswitch"
+	"github.com/konradreiche/strictgo/internal/passes/forint"
 	"github.com/konradreiche/strictgo/internal/passes/keepflat"
 	"github.com/konradreiche/strictgo/internal/passes/limitscope"
 	"github.com/konradreiche/strictgo/internal/passes/nilresult"
@@ -15,6 +16,7 @@ func main() {
 	multichecker.Main(
 		badname.Analyzer,
 		boolswitch.Analyzer,
+		forint.Analyzer,
 		keepflat.Analyzer,
 		limitscope.Analyzer,
 		nilresult.Analyzer,
