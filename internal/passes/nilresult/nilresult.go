@@ -1,7 +1,8 @@
-// Package nilresult checks that pointer results and errors are mutually exclusive.
+// Package nilresult checks that error returns have nil pointer or zero struct results.
 package nilresult
 
 import (
+	"go/constant"
 	"go/token"
 	"go/types"
 
@@ -12,7 +13,7 @@ import (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "nilresult",
-	Doc:      "require a nil result or nil error when returning (*T, error)",
+	Doc:      "require a nil pointer or zero struct result when returning an error",
 	Requires: []*analysis.Analyzer{buildssa.Analyzer},
 	Run:      run,
 }
@@ -35,27 +36,184 @@ func run(pass *analysis.Pass) (any, error) {
 		if results.Len() != 2 || !types.Identical(results.At(1).Type(), errorType) {
 			continue
 		}
-		if _, ok := results.At(0).Type().Underlying().(*types.Pointer); !ok {
+		structResult := false
+		switch results.At(0).Type().Underlying().(type) {
+		case *types.Pointer:
+		case *types.Struct:
+			structResult = true
+		default:
 			continue
 		}
 		for _, block := range fn.Blocks {
+			// Unnamed result slots cannot be modified by deferred code. A
+			// recovered panic either returns their initial zeros or the values
+			// from an explicit return, which we check at its own return site.
+			if block == fn.Recover && results.At(0).Name() == "" && results.At(1).Name() == "" {
+				continue
+			}
 			for _, instruction := range block.Instrs {
 				ret, ok := instruction.(*ssa.Return)
 				if !ok {
 					continue
 				}
-				if isNil(ret.Results[0], block, make(map[visit]bool)) || isNil(ret.Results[1], block, make(map[visit]bool)) {
+				if isNil(ret.Results[1], block, make(map[visit]bool)) {
+					continue
+				}
+				if structResult {
+					if isZero(ret.Results[0], block, make(map[visit]bool)) {
+						continue
+					}
+				} else if isNil(ret.Results[0], block, make(map[visit]bool)) {
 					continue
 				}
 				pos := ret.Pos()
 				if !pos.IsValid() {
 					pos = fn.Pos()
 				}
-				pass.Reportf(pos, "return a nil result or a nil error: both returned values may be non-nil")
+				if structResult {
+					pass.Reportf(pos, "return a zero struct result or a nil error: use %s{}, err in error cases", results.At(0).Type())
+				} else {
+					pass.Reportf(pos, "return a nil result or a nil error: both returned values may be non-nil")
+				}
 			}
 		}
 	}
 	return nil, nil
+}
+
+// isZero recognizes zero constants, conversions, merges, and zero-initialized
+// aggregate storage. Unknown values are deliberately not assumed to be zero.
+func isZero(value ssa.Value, block *ssa.BasicBlock, seen map[visit]bool) bool {
+	key := visit{value, block}
+	if seen[key] {
+		return false
+	}
+	seen[key] = true
+	defer delete(seen, key)
+	if c, ok := value.(*ssa.Const); ok {
+		// SSA also represents zero structs and arrays with a nil Value.
+		if c.Value == nil {
+			return true
+		}
+		switch c.Value.Kind() {
+		case constant.Bool:
+			return !constant.BoolVal(c.Value)
+		case constant.String:
+			return constant.StringVal(c.Value) == ""
+		case constant.Int, constant.Float, constant.Complex:
+			return constant.Compare(c.Value, token.EQL, constant.MakeInt64(0))
+		}
+	}
+	switch value := value.(type) {
+	case *ssa.ChangeType:
+		return isZero(value.X, block, seen)
+	case *ssa.Convert:
+		return isZero(value.X, block, seen)
+	case *ssa.Phi:
+		for i, edge := range value.Edges {
+			if !isZero(edge, value.Block().Preds[i], seen) {
+				return false
+			}
+		}
+		return len(value.Edges) > 0
+	case *ssa.UnOp:
+		if value.Op == token.MUL {
+			if alloc, ok := value.X.(*ssa.Alloc); ok {
+				return loadedValueIs(value, isZero, seen) || zeroStorage(alloc, seen)
+			}
+		}
+	}
+	return false
+}
+
+// zeroStorage proves that a fresh allocation only receives zero writes and
+// never escapes to code that could mutate it. Reads do not affect this proof.
+func zeroStorage(address ssa.Value, seen map[visit]bool) bool {
+	refs := address.Referrers()
+	if refs == nil {
+		return false
+	}
+	for _, ref := range *refs {
+		switch ref := ref.(type) {
+		case *ssa.Store:
+			if ref.Addr != address || !isZero(ref.Val, ref.Block(), seen) {
+				return false
+			}
+		case *ssa.FieldAddr:
+			if !zeroStorage(ref, seen) {
+				return false
+			}
+		case *ssa.IndexAddr:
+			if !zeroStorage(ref, seen) {
+				return false
+			}
+		case *ssa.UnOp:
+			if ref.Op != token.MUL {
+				return false
+			}
+		case *ssa.DebugRef:
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+// loadedValueIs follows whole-value stores reaching a load, rather than all
+// writes during an allocation's lifetime. SSA uses shared result slots in
+// functions with defer, even for explicit return expressions.
+func loadedValueIs(load *ssa.UnOp, prove func(ssa.Value, *ssa.BasicBlock, map[visit]bool) bool, seen map[visit]bool) bool {
+	alloc, ok := load.X.(*ssa.Alloc)
+	if !ok || load.Op != token.MUL {
+		return false
+	}
+	// Only private storage accessed by whole-value stores and loads is safe
+	// here. In particular, deferred closures may mutate captured result slots.
+	for _, ref := range *alloc.Referrers() {
+		switch ref := ref.(type) {
+		case *ssa.Store:
+			if ref.Addr != alloc {
+				return false
+			}
+		case *ssa.UnOp:
+			if ref.Op != token.MUL {
+				return false
+			}
+		case *ssa.DebugRef:
+		default:
+			return false
+		}
+	}
+	visiting := make(map[*ssa.BasicBlock]bool)
+	var reaching func(*ssa.BasicBlock, int) bool
+	reaching = func(block *ssa.BasicBlock, end int) bool {
+		if visiting[block] {
+			return false
+		}
+		visiting[block] = true
+		defer delete(visiting, block)
+		for i := end - 1; i >= 0; i-- {
+			instruction := block.Instrs[i]
+			if store, ok := instruction.(*ssa.Store); ok && store.Addr == alloc {
+				return prove(store.Val, block, seen)
+			}
+			if instruction == alloc {
+				return true // Fresh allocations contain the zero value.
+			}
+		}
+		for _, pred := range block.Preds {
+			if !reaching(pred, len(pred.Instrs)) {
+				return false
+			}
+		}
+		return len(block.Preds) > 0
+	}
+	for i, instruction := range load.Block().Instrs {
+		if instruction == load {
+			return reaching(load.Block(), i)
+		}
+	}
+	return false
 }
 
 type visit struct {
@@ -113,6 +271,8 @@ func isNil(value ssa.Value, block *ssa.BasicBlock, seen map[visit]bool) bool {
 		return isNil(value.X, block, seen)
 	case *ssa.ChangeInterface:
 		return isNil(value.X, block, seen)
+	case *ssa.UnOp:
+		return loadedValueIs(value, isNil, seen)
 	case *ssa.Phi:
 		for i, edge := range value.Edges {
 			if !isNil(edge, value.Block().Preds[i], seen) {

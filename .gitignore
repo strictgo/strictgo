@@ -1,0 +1,29 @@
+# Build output
+/bin/
+/dist/
+/strictgo
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries and coverage
+*.test
+*.out
+coverage.*
+
+# Local workspace configuration
+go.work
+go.work.sum
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
