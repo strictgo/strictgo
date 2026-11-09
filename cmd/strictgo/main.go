@@ -9,6 +9,7 @@ import (
 	"github.com/konradreiche/strictgo/internal/passes/keepflat"
 	"github.com/konradreiche/strictgo/internal/passes/limitscope"
 	"github.com/konradreiche/strictgo/internal/passes/nilresult"
+	"github.com/konradreiche/strictgo/internal/passes/okcheck"
 	"github.com/konradreiche/strictgo/internal/passes/returnstruct"
 	"github.com/konradreiche/strictgo/internal/passes/zeroinit"
 	"golang.org/x/tools/go/analysis/multichecker"
@@ -24,6 +25,7 @@ func main() {
 		keepflat.Analyzer,
 		limitscope.Analyzer,
 		nilresult.Analyzer,
+		okcheck.Analyzer,
 		returnstruct.Analyzer,
 		zeroinit.Analyzer,
 	)
