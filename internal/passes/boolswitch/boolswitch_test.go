@@ -1,8 +1,9 @@
 package boolswitch
 
 import (
-	"golang.org/x/tools/go/analysis/analysistest"
 	"testing"
+
+	"golang.org/x/tools/go/analysis/analysistest"
 )
 
 func TestAnalyzer(t *testing.T) {
