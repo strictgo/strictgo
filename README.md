@@ -19,3 +19,9 @@ Run from your Go module:
 ```sh
 strictgo ./...
 ```
+
+Apply available fixes automatically:
+
+```sh
+strictgo -fix ./...
+```

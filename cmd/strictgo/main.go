@@ -4,6 +4,7 @@ import (
 	"github.com/konradreiche/strictgo/internal/passes/badname"
 	"github.com/konradreiche/strictgo/internal/passes/boolswitch"
 	"github.com/konradreiche/strictgo/internal/passes/errcheck"
+	"github.com/konradreiche/strictgo/internal/passes/forcederef"
 	"github.com/konradreiche/strictgo/internal/passes/forint"
 	"github.com/konradreiche/strictgo/internal/passes/keepflat"
 	"github.com/konradreiche/strictgo/internal/passes/limitscope"
@@ -18,6 +19,7 @@ func main() {
 		badname.Analyzer,
 		boolswitch.Analyzer,
 		errcheck.Analyzer,
+		forcederef.Analyzer,
 		forint.Analyzer,
 		keepflat.Analyzer,
 		limitscope.Analyzer,
