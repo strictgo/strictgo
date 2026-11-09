@@ -34,9 +34,11 @@ func (v visitor) Visit(node ast.Node) ast.Visitor {
 	case nil:
 		return nil
 	case *ast.FuncDecl:
-		v.depth, v.functionBody = 0, node.Body
+		v.depth = 0
+		v.functionBody = node.Body
 	case *ast.FuncLit:
-		v.depth, v.functionBody = 0, node.Body
+		v.depth = 0
+		v.functionBody = node.Body
 	case *ast.BlockStmt:
 		if node != v.functionBody {
 			v.depth++

@@ -1,0 +1,52 @@
+package fixes
+
+func source() int { return 1 }
+
+func split(a, b int, values []int) {
+	a = 1
+	b = 2 // want "use separate assignments for multiple value sources"
+	c := 3
+	d := 4 // want "use separate assignments for multiple value sources"
+	a = 5
+	e := 6 // want "use separate assignments for multiple value sources"
+	f := 7
+	a = 8 // want "use separate assignments for multiple value sources"
+	g := 9
+	_ = 10 // want "use separate assignments for multiple value sources"
+	_ = 11
+	b = 12 // want "use separate assignments for multiple value sources"
+	a = c
+	b = d // want "use separate assignments for multiple value sources"
+
+	// Evaluation order and dependencies prevent a safe split.
+	a, b = source(), source() // want "use separate assignments for multiple value sources"
+	a, b = 1, a // want "use separate assignments for multiple value sources"
+	a, b = 1, values[0] // want "use separate assignments for multiple value sources"
+	values[0], a = 1, 2 // want "use separate assignments for multiple value sources"
+	a, b = 1 /* keep */, 2 // want "use separate assignments for multiple value sources"
+	if a, b = 1, 2; a > b { // want "use separate assignments for multiple value sources"
+		return
+	}
+	for a, b = 1, 2; a < b; a, b = 2, 3 { // want "use separate assignments for multiple value sources" "use separate assignments for multiple value sources"
+		break
+	}
+	goto label
+label:
+	a, b = 1, 2 // want "use separate assignments for multiple value sources"
+
+	// A short declaration must not shadow a name used by a later source.
+	{
+		a, b := 1, a // want "use separate assignments for multiple value sources"
+		_ = a
+		_ = b
+	}
+	switch a {
+	case 0:
+		a = 1
+		b = 2 // want "use separate assignments for multiple value sources"
+	}
+	_ = b
+	_ = e
+	_ = f
+	_ = g
+}

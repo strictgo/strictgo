@@ -11,6 +11,7 @@ import (
 	"github.com/konradreiche/strictgo/internal/passes/nilresult"
 	"github.com/konradreiche/strictgo/internal/passes/okcheck"
 	"github.com/konradreiche/strictgo/internal/passes/returnstruct"
+	"github.com/konradreiche/strictgo/internal/passes/singleassign"
 	"github.com/konradreiche/strictgo/internal/passes/zeroinit"
 	"golang.org/x/tools/go/analysis/multichecker"
 )
@@ -27,6 +28,7 @@ func main() {
 		nilresult.Analyzer,
 		okcheck.Analyzer,
 		returnstruct.Analyzer,
+		singleassign.Analyzer,
 		zeroinit.Analyzer,
 	)
 }
