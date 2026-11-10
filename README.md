@@ -7,7 +7,7 @@ Its analyzers focus on simpler control flow, smaller variable scopes, clearer AP
 ## Install
 
 ```sh
-go install github.com/konradreiche/strictgo/cmd/strictgo@latest
+go install github.com/strictgo/strictgo/cmd/strictgo@latest
 ```
 
 Ensure your Go bin directory (`$(go env GOPATH)/bin` by default) is on `PATH`.

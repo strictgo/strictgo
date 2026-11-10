@@ -1,4 +1,4 @@
-module github.com/konradreiche/strictgo
+module github.com/strictgo/strictgo
 
 go 1.26.5
 

@@ -1,18 +1,18 @@
 package main
 
 import (
-	"github.com/konradreiche/strictgo/internal/passes/badname"
-	"github.com/konradreiche/strictgo/internal/passes/boolswitch"
-	"github.com/konradreiche/strictgo/internal/passes/errcheck"
-	"github.com/konradreiche/strictgo/internal/passes/forcederef"
-	"github.com/konradreiche/strictgo/internal/passes/forint"
-	"github.com/konradreiche/strictgo/internal/passes/keepflat"
-	"github.com/konradreiche/strictgo/internal/passes/limitscope"
-	"github.com/konradreiche/strictgo/internal/passes/nilresult"
-	"github.com/konradreiche/strictgo/internal/passes/okcheck"
-	"github.com/konradreiche/strictgo/internal/passes/returnstruct"
-	"github.com/konradreiche/strictgo/internal/passes/singleassign"
-	"github.com/konradreiche/strictgo/internal/passes/zeroinit"
+	"github.com/strictgo/strictgo/internal/passes/badname"
+	"github.com/strictgo/strictgo/internal/passes/boolswitch"
+	"github.com/strictgo/strictgo/internal/passes/errcheck"
+	"github.com/strictgo/strictgo/internal/passes/forcederef"
+	"github.com/strictgo/strictgo/internal/passes/forint"
+	"github.com/strictgo/strictgo/internal/passes/keepflat"
+	"github.com/strictgo/strictgo/internal/passes/limitscope"
+	"github.com/strictgo/strictgo/internal/passes/nilresult"
+	"github.com/strictgo/strictgo/internal/passes/okcheck"
+	"github.com/strictgo/strictgo/internal/passes/returnstruct"
+	"github.com/strictgo/strictgo/internal/passes/singleassign"
+	"github.com/strictgo/strictgo/internal/passes/zeroinit"
 	"golang.org/x/tools/go/analysis/multichecker"
 )
 
