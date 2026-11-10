@@ -21,6 +21,7 @@ lint: install-tools vet build
 	./bin/strictgo ./...
 
 fmt: install-tools
+	go fix ./...
 	./bin/gofumpt -w .
 
 tidy:
