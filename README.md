@@ -25,3 +25,21 @@ Apply available fixes automatically:
 ```sh
 strictgo -fix ./...
 ```
+
+## Analyzers
+
+| Analyzer | What it checks |
+|---|---|
+| `badname` | Flags naming choices such as error variables not named `err`, single-letter names outside short scopes, and redundant suffixes like `Str` or `Map`. |
+| `boolswitch` | Prefers `if` statements and early returns over boolean or expressionless `switch` statements. |
+| `declorder` | Enforces a consistent order for top-level declarations, including types, constructors, methods, and functions. |
+| `errcheck` | Requires comparisons in the form `err != nil`. Despite the name, it does not check for ignored errors. |
+| `forcederef` | Flags explicit pointer dereferences used to satisfy function or method signatures within the same module. |
+| `forint` | Flags traditional `for` loops with integer counters. |
+| `keepflat` | Flags nesting deeper than five blocks within a function. |
+| `limitscope` | Flags opportunities to narrow variable scope, such as moving an `err` assignment into the following `if` initializer. |
+| `nilresult` | For functions returning a pointer or struct alongside an error, expects a nil pointer or zero-value struct on error. |
+| `okcheck` | Flags discarding the boolean result of a `(value, bool)` function call with `_`. |
+| `returnstructs` | Flags functions and methods that return interfaces rather than concrete types, with exceptions such as `error` and `any`. |
+| `singleassign` | Prefers separate assignments for separate right-hand-side expressions, while allowing swaps and rotations. |
+| `zeroinit` | Flags redundant zero-value initializers for basic types, such as `count := 0` where `var count int` would do. |
