@@ -15,6 +15,11 @@ import (
 	"golang.org/x/tools/go/types/typeutil"
 )
 
+// maxShortScopeLines is the inclusive line span from a variable's declaration
+// to the end of its lexical scope. Using the scope rather than the last use
+// prevents unused or rarely used variables from appearing artificially local.
+const maxShortScopeLines = 7
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "badname",
 	Doc:      "flags badly named variables",
@@ -59,11 +64,6 @@ func run(pass *analysis.Pass) (any, error) {
 	})
 	return nil, nil
 }
-
-// maxShortScopeLines is the inclusive line span from a variable's declaration
-// to the end of its lexical scope. Using the scope rather than the last use
-// prevents unused or rarely used variables from appearing artificially local.
-const maxShortScopeLines = 7
 
 // Only the comparator's parameters are exempt, not its local variables or
 // parameters of functions nested inside it. Resolve the callee by identity so

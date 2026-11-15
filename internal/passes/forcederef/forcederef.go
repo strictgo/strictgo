@@ -16,18 +16,6 @@ var Analyzer = &analysis.Analyzer{
 	FactTypes: []analysis.Fact{new(moduleFact)},
 }
 
-// Module facts distinguish same-module packages from dependencies, including
-// dependencies whose import paths share the current module's prefix.
-type moduleFact struct {
-	Path string
-}
-
-func (*moduleFact) AFact() {}
-
-func (fact *moduleFact) String() string {
-	return "module " + fact.Path
-}
-
 func run(pass *analysis.Pass) (any, error) {
 	if pass.Module != nil {
 		pass.ExportPackageFact(&moduleFact{
@@ -74,6 +62,18 @@ func run(pass *analysis.Pass) (any, error) {
 		})
 	}
 	return nil, nil
+}
+
+// Module facts distinguish same-module packages from dependencies, including
+// dependencies whose import paths share the current module's prefix.
+type moduleFact struct {
+	Path string
+}
+
+func (*moduleFact) AFact() {}
+
+func (fact *moduleFact) String() string {
+	return "module " + fact.Path
 }
 
 func localPackage(pass *analysis.Pass, pkg *types.Package) bool {
