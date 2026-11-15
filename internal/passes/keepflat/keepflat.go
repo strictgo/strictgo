@@ -17,7 +17,9 @@ var Analyzer = &analysis.Analyzer{
 
 func run(pass *analysis.Pass) (any, error) {
 	for _, file := range pass.Files {
-		ast.Walk(visitor{pass: pass}, file)
+		ast.Walk(visitor{
+			pass: pass,
+		}, file)
 	}
 	return nil, nil
 }

@@ -66,7 +66,8 @@ func run(pass *analysis.Pass) (any, error) {
 				return
 			}
 			diagnostic := analysis.Diagnostic{
-				Pos: value.Pos(), End: value.End(),
+				Pos:     value.Pos(),
+				End:     value.End(),
 				Message: "omit explicit zero-value initializer for " + name.Name + "; use a var declaration",
 			}
 			typeName := types.TypeString(obj.Type(), qualifier)
@@ -79,8 +80,12 @@ func run(pass *analysis.Pass) (any, error) {
 			if fix && resolved.IsType() && types.Identical(resolved.Type, obj.Type()) {
 				replacement := prefix + name.Name + " " + typeName
 				diagnostic.SuggestedFixes = []analysis.SuggestedFix{{
-					Message:   "Use a var declaration",
-					TextEdits: []analysis.TextEdit{{Pos: start, End: end, NewText: []byte(replacement)}},
+					Message: "Use a var declaration",
+					TextEdits: []analysis.TextEdit{{
+						Pos:     start,
+						End:     end,
+						NewText: []byte(replacement),
+					}},
 				}}
 			}
 			pass.Report(diagnostic)

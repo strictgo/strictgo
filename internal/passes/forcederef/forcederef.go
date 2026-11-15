@@ -30,7 +30,9 @@ func (fact *moduleFact) String() string {
 
 func run(pass *analysis.Pass) (any, error) {
 	if pass.Module != nil {
-		pass.ExportPackageFact(&moduleFact{Path: pass.Module.Path})
+		pass.ExportPackageFact(&moduleFact{
+			Path: pass.Module.Path,
+		})
 	}
 	for _, file := range pass.Files {
 		ast.Inspect(file, func(node ast.Node) bool {

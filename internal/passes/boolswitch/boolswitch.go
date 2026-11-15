@@ -37,7 +37,11 @@ func run(pass *analysis.Pass) (any, error) {
 					return true
 				}
 			}
-			diagnostic := analysis.Diagnostic{Pos: sw.Switch, End: sw.End(), Message: "replace boolean switch with if statements and early returns"}
+			diagnostic := analysis.Diagnostic{
+				Pos:     sw.Switch,
+				End:     sw.End(),
+				Message: "replace boolean switch with if statements and early returns",
+			}
 			if source == nil {
 				var err error
 				source, err = pass.ReadFile(pass.Fset.Position(file.Pos()).Filename)
@@ -47,7 +51,14 @@ func run(pass *analysis.Pass) (any, error) {
 				}
 			}
 			if replacement, ok := rewrite(pass, sw, source); ok {
-				diagnostic.SuggestedFixes = []analysis.SuggestedFix{{Message: "Replace with if statements", TextEdits: []analysis.TextEdit{{Pos: sw.Pos(), End: sw.End(), NewText: replacement}}}}
+				diagnostic.SuggestedFixes = []analysis.SuggestedFix{{
+					Message: "Replace with if statements",
+					TextEdits: []analysis.TextEdit{{
+						Pos:     sw.Pos(),
+						End:     sw.End(),
+						NewText: replacement,
+					}},
+				}}
 			}
 			pass.Report(diagnostic)
 			return true

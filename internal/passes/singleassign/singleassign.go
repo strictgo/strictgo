@@ -42,7 +42,9 @@ func run(pass *analysis.Pass) (any, error) {
 				diagnostic.SuggestedFixes = []analysis.SuggestedFix{{
 					Message: "Split into separate assignments",
 					TextEdits: []analysis.TextEdit{{
-						Pos: assignment.Pos(), End: assignment.End(), NewText: []byte(replacement),
+						Pos:     assignment.Pos(),
+						End:     assignment.End(),
+						NewText: []byte(replacement),
 					}},
 				}}
 			}
