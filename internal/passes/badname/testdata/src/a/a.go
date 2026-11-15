@@ -65,7 +65,7 @@ func loops(values []int) {
 	for i, v := range values {
 		println(i, v)
 	}
-	for i := 0; i < len(values); i++ { // want `variable "i" has a single-letter name outside a short scope`
+	for i := 0; i < len(values); i++ {
 		println(values[i])
 		println(values[i])
 		println(values[i])
@@ -153,5 +153,7 @@ func comparator(values []int) {
 	})
 }
 
-var nameStr string            // want `variable "nameStr" unnecessarily contains type information with suffix "Str"`
-var entriesMap map[string]int // want `variable "entriesMap" unnecessarily contains type information with suffix "Map"`
+var (
+	nameStr    string         // want `variable "nameStr" unnecessarily contains type information with suffix "Str"`
+	entriesMap map[string]int // want `variable "entriesMap" unnecessarily contains type information with suffix "Map"`
+)

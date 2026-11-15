@@ -35,6 +35,7 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 	exemptVariables := make(map[types.Object]bool)
 	exemptFunctionalOptions(pass, inspector, exemptVariables)
+	exemptLoopCounters(pass.TypesInfo, inspector, exemptVariables)
 	filter := []ast.Node{
 		(*ast.CallExpr)(nil),
 		(*ast.FuncDecl)(nil),
