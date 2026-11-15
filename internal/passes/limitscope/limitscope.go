@@ -28,6 +28,7 @@ func run(pass *analysis.Pass) (any, error) {
 	inspector.Preorder([]ast.Node{(*ast.BlockStmt)(nil)}, func(n ast.Node) {
 		block := n.(*ast.BlockStmt)
 		check(pass, block.List)
+		checkDeferredTimes(pass, block.List)
 	})
 	return nil, nil
 }

@@ -10,3 +10,7 @@ func TestAnalyzer(t *testing.T) {
 	path := analysistest.TestData()
 	analysistest.Run(t, path, Analyzer, "a")
 }
+
+func TestDeferredTimeFixes(t *testing.T) {
+	analysistest.RunWithSuggestedFixes(t, analysistest.TestData(), Analyzer, "defertime")
+}

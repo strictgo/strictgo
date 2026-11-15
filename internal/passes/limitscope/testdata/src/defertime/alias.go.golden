@@ -1,0 +1,13 @@
+package defertime
+
+import clock "time"
+
+func alias() {
+	// want "pass startedAt as a deferred function argument to reduce scope"
+	defer func(startedAt clock.Time) { _ = clock.Since(startedAt) }(clock.Now())
+}
+
+func shadowedQualifier() {
+	clock := clock.Now() // want "pass clock as a deferred function argument to reduce scope"
+	defer func() { println(clock.Unix()) }()
+}
