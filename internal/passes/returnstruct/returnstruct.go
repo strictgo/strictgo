@@ -40,6 +40,11 @@ func run(pass *analysis.Pass) (any, error) {
 				if typ == nil {
 					continue
 				}
+				// A type parameter's underlying interface describes its constraint,
+				// not the result type chosen by the caller at instantiation.
+				if _, ok := types.Unalias(typ).(*types.TypeParam); ok {
+					continue
+				}
 
 				if _, ok := typ.Underlying().(*types.Interface); ok {
 					if types.Identical(typ, errorType) {
