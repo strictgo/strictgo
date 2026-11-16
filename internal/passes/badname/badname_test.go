@@ -7,7 +7,7 @@ import (
 )
 
 func TestAnalyzer(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), Analyzer, "a", "globals", "testingnames", "sortnames", "errornames", "optionnames", "loopnames", "filenames", "packagenames/...")
+	analysistest.Run(t, analysistest.TestData(), Analyzer, "a", "globals", "testingnames", "sortnames", "errornames", "optionnames", "loopnames", "recovernames", "filenames", "packagenames/...")
 }
 
 func TestVagueName(t *testing.T) {

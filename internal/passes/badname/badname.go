@@ -38,6 +38,7 @@ func run(pass *analysis.Pass) (any, error) {
 	exemptFunctionalOptions(pass, inspector, exemptVariables)
 	exemptLoopCounters(pass.TypesInfo, inspector, exemptVariables)
 	filter := []ast.Node{
+		(*ast.AssignStmt)(nil),
 		(*ast.CallExpr)(nil),
 		(*ast.FuncDecl)(nil),
 		(*ast.Ident)(nil),
@@ -45,6 +46,12 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 	inspector.Preorder(filter, func(node ast.Node) {
 		switch node := node.(type) {
+		case *ast.AssignStmt:
+			if len(node.Lhs) == 1 && len(node.Rhs) == 1 {
+				if name, ok := node.Lhs[0].(*ast.Ident); ok {
+					exemptRecoverResult(pass.TypesInfo, name, node.Rhs[0], exemptVariables)
+				}
+			}
 		case *ast.CallExpr:
 			exemptSortParameters(pass.TypesInfo, node, exemptVariables)
 		case *ast.FuncDecl:
@@ -60,11 +67,30 @@ func run(pass *analysis.Pass) (any, error) {
 				handleSingleLetter(pass, node, exemptVariables)
 			}
 		case *ast.ValueSpec:
+			if len(node.Names) == 1 && len(node.Values) == 1 {
+				exemptRecoverResult(pass.TypesInfo, node.Names[0], node.Values[0], exemptVariables)
+			}
 			handleMaps(pass, node)
 			handleStrings(pass, node)
 		}
 	})
 	return nil, nil
+}
+
+// Match the built-in by identity, not spelling: a user-defined function called
+// recover must not exempt its result. Only newly declared r variables qualify.
+func exemptRecoverResult(info *types.Info, name *ast.Ident, expression ast.Expr, exempt map[types.Object]bool) {
+	if name.Name != "r" || info.Defs[name] == nil {
+		return
+	}
+	call, ok := ast.Unparen(expression).(*ast.CallExpr)
+	if !ok || len(call.Args) != 0 {
+		return
+	}
+	function, ok := ast.Unparen(call.Fun).(*ast.Ident)
+	if ok && info.ObjectOf(function) == types.Universe.Lookup("recover") {
+		exempt[info.Defs[name]] = true
+	}
 }
 
 // Only the comparator's parameters are exempt, not its local variables or
