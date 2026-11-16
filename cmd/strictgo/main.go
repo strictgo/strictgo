@@ -12,6 +12,7 @@ import (
 	"github.com/strictgo/strictgo/internal/passes/keepflat"
 	"github.com/strictgo/strictgo/internal/passes/limitscope"
 	"github.com/strictgo/strictgo/internal/passes/nilresult"
+	"github.com/strictgo/strictgo/internal/passes/noelse"
 	"github.com/strictgo/strictgo/internal/passes/okcheck"
 	"github.com/strictgo/strictgo/internal/passes/returnstruct"
 	"github.com/strictgo/strictgo/internal/passes/singleassign"
@@ -32,6 +33,7 @@ func main() {
 		keepflat.Analyzer,
 		limitscope.Analyzer,
 		nilresult.Analyzer,
+		noelse.Analyzer,
 		okcheck.Analyzer,
 		returnstruct.Analyzer,
 		singleassign.Analyzer,
