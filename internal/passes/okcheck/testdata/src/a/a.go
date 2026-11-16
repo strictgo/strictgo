@@ -59,7 +59,7 @@ func accepted(values map[string]int, input any, channel <-chan int) {
 	_, _, _ = three()
 	_, _ = 1, single()
 	value, _ = values["key"]
-	value, _ = input.(int)
+	value, ok = input.(int)
 	value, _ = <-channel
 	_ = single()
 	lookup()

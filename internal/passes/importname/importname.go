@@ -68,7 +68,10 @@ func importBinding(info *types.Info, specification *ast.ImportSpec) *types.PkgNa
 	if specification.Name != nil {
 		object = info.Defs[specification.Name]
 	}
-	binding, _ := object.(*types.PkgName)
+	binding, ok := object.(*types.PkgName)
+	if !ok {
+		return nil
+	}
 	return binding
 }
 

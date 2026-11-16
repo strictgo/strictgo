@@ -1,4 +1,4 @@
-// Package okcheck flags discarded boolean results from two-result calls.
+// Package okcheck flags discarded boolean results from calls and type assertions.
 package okcheck
 
 import (
@@ -10,7 +10,7 @@ import (
 
 var Analyzer = &analysis.Analyzer{
 	Name: "okcheck",
-	Doc:  "require preserving the boolean result of functions returning (value, bool)",
+	Doc:  "require preserving boolean results from (value, bool) calls and type assertions",
 	Run:  run,
 }
 
@@ -24,7 +24,11 @@ func run(pass *analysis.Pass) (any, error) {
 				if len(node.Lhs) != 2 {
 					return true
 				}
-				result, _ = node.Lhs[1].(*ast.Ident)
+				identifier, ok := node.Lhs[1].(*ast.Ident)
+				if !ok {
+					return true
+				}
+				result = identifier
 				values = node.Rhs
 			case *ast.ValueSpec:
 				if len(node.Names) != 2 {
@@ -38,7 +42,12 @@ func run(pass *analysis.Pass) (any, error) {
 			if result == nil || result.Name != "_" || len(values) != 1 {
 				return true
 			}
-			call, ok := ast.Unparen(values[0]).(*ast.CallExpr)
+			expression := ast.Unparen(values[0])
+			if _, ok := expression.(*ast.TypeAssertExpr); ok {
+				pass.Reportf(result.Pos(), "do not discard the boolean result of a type assertion")
+				return true
+			}
+			call, ok := expression.(*ast.CallExpr)
 			if !ok {
 				return true
 			}

@@ -40,7 +40,7 @@ strictgo -fix ./...
 | `keepflat` | Flags nesting deeper than five blocks within a function. |
 | `limitscope` | Flags opportunities to narrow variable scope, such as moving an `err` assignment into the following `if` initializer. |
 | `nilresult` | For functions returning a pointer or struct alongside an error, expects a nil pointer or zero-value struct on error. |
-| `okcheck` | Flags discarding the boolean result of a `(value, bool)` function call with `_`. |
+| `okcheck` | Flags discarding the boolean result of a `(value, bool)` function call or comma-ok type assertion with `_`. |
 | `returnstructs` | Flags functions and methods that return interfaces rather than concrete types, with exceptions such as `error` and `any`. |
 | `singleassign` | Prefers separate assignments for separate right-hand-side expressions, while allowing swaps and rotations. |
 | `zeroinit` | Flags redundant zero-value initializers for basic types, such as `count := 0` where `var count int` would do. |
