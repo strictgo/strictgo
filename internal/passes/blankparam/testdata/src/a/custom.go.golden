@@ -1,0 +1,5 @@
+package a
+
+type Context struct{}
+
+func custom(context Context) {} // want "blank parameter obscures its purpose"

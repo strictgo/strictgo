@@ -1,0 +1,63 @@
+package a
+
+import (
+	"context"
+	"testing"
+)
+
+type ContextAlias = context.Context
+
+type HTTPClient struct{}
+
+func ordinary(ctx context.Context) {} // want "blank parameter obscures its purpose"
+
+func aliased(ctx ContextAlias) {} // want "blank parameter obscures its purpose"
+
+func (HTTPClient) Method(ctx context.Context) {} // want "blank parameter obscures its purpose"
+
+var literal = func(ctx context.Context) {} // want "blank parameter obscures its purpose"
+
+type Handler func(ctx context.Context) // want "blank parameter obscures its purpose"
+
+type HandlerAlias = func(ctx context.Context) // want "blank parameter obscures its purpose"
+
+type Service interface {
+	Handle(ctx context.Context) // want "blank parameter obscures its purpose"
+}
+
+type container struct {
+	callback func(ctx context.Context) // want "blank parameter obscures its purpose"
+}
+
+var callable func(ctx context.Context) // want "blank parameter obscures its purpose"
+
+var converted = (func(ctx context.Context))(nil) // want "blank parameter obscures its purpose"
+
+func accepts(callback func(ctx context.Context)) {} // want "blank parameter obscures its purpose"
+
+func returns() func(ctx context.Context) { return nil } // want "blank parameter obscures its purpose"
+
+func local() {
+	var callback func(ctx context.Context) // want "blank parameter obscures its purpose"
+	_ = callback
+}
+
+func generic[T any](ctx context.Context, value T) {} // want "blank parameter obscures its purpose" "blank parameter obscures its purpose"
+
+func client(httpClient *HTTPClient) {} // want "blank parameter obscures its purpose"
+
+func basics(text string, enabled bool, value int, err error) {} // want "blank parameter obscures its purpose" "blank parameter obscures its purpose" "blank parameter obscures its purpose" "blank parameter obscures its purpose"
+
+func variadic(values ...string) {} // want "blank parameter obscures its purpose"
+
+func testCallback(t *testing.T) {} // want "blank parameter obscures its purpose"
+
+// Unnamed parameters and blank results are outside this rule.
+func unnamed(context.Context) {}
+func blankResult() (_ int)    { return 0 }
+
+// Field names do not collide with a newly introduced parameter.
+func fieldUse(ctx context.Context) { // want "blank parameter obscures its purpose"
+	var record struct{ ctx int }
+	_ = record.ctx
+}

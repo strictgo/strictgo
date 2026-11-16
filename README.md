@@ -31,6 +31,7 @@ strictgo -fix ./...
 | Analyzer | What it checks |
 |---|---|
 | `badname` | Flags error variables not named `err`, single-letter names outside short scopes, redundant `Str`/`Map` suffixes, and generic package or file names using `util`, `utils`, `helper`, `helpers`, or `misc`. |
+| `blankparam` | Flags explicit `_` parameters in functions, methods, literals, interfaces, and function types. Suggests collision-safe names, including `ctx` for `context.Context`. |
 | `boolswitch` | Prefers `if` statements and early returns over boolean or expressionless `switch` statements. |
 | `declorder` | Enforces a consistent order for top-level declarations, including types, constructors, methods, and functions. |
 | `errcheck` | Requires comparisons in the form `err != nil`. Despite the name, it does not check for ignored errors. |

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/strictgo/strictgo/internal/passes/badname"
+	"github.com/strictgo/strictgo/internal/passes/blankparam"
 	"github.com/strictgo/strictgo/internal/passes/boolswitch"
 	"github.com/strictgo/strictgo/internal/passes/declorder"
 	"github.com/strictgo/strictgo/internal/passes/errcheck"
@@ -21,6 +22,7 @@ import (
 func main() {
 	multichecker.Main(
 		badname.Analyzer,
+		blankparam.Analyzer,
 		boolswitch.Analyzer,
 		declorder.Analyzer,
 		errcheck.Analyzer,

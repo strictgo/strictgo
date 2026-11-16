@@ -1,0 +1,5 @@
+package a
+
+import cx "context"
+
+func importAlias(ctx cx.Context) {} // want "blank parameter obscures its purpose"
