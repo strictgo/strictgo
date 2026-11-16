@@ -7,6 +7,7 @@ import (
 	"github.com/strictgo/strictgo/internal/passes/errcheck"
 	"github.com/strictgo/strictgo/internal/passes/forcederef"
 	"github.com/strictgo/strictgo/internal/passes/forint"
+	"github.com/strictgo/strictgo/internal/passes/importname"
 	"github.com/strictgo/strictgo/internal/passes/keepflat"
 	"github.com/strictgo/strictgo/internal/passes/limitscope"
 	"github.com/strictgo/strictgo/internal/passes/nilresult"
@@ -25,6 +26,7 @@ func main() {
 		errcheck.Analyzer,
 		forcederef.Analyzer,
 		forint.Analyzer,
+		importname.Analyzer,
 		keepflat.Analyzer,
 		limitscope.Analyzer,
 		nilresult.Analyzer,

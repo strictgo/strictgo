@@ -1,0 +1,16 @@
+package a
+
+import (
+	json2 "encoding/json"
+	"fmt"             // want `import name "Fmt" must use lowercase`
+	strutil "strings" // want `import name "str_util" must use lowercase`
+)
+
+func use() {
+	fmt.Println(strutil.TrimSpace(" text "))
+	_ = json2.Valid(nil)
+	{
+		Fmt := "a local variable, not a package reference"
+		println(Fmt)
+	}
+}
