@@ -1,4 +1,4 @@
-// Package badname defines an Analyzer that reports badly named variables.
+// Package badname reports badly named variables, packages, and Go files.
 package badname
 
 import (
@@ -22,12 +22,13 @@ const maxShortScopeLines = 7
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "badname",
-	Doc:      "flags badly named variables",
+	Doc:      "flags badly named variables, packages, and Go files",
 	Requires: []*analysis.Analyzer{inspect.Analyzer},
 	Run:      run,
 }
 
 func run(pass *analysis.Pass) (any, error) {
+	checkPackageAndFileNames(pass)
 	inspector, ok := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 	if !ok {
 		// explicit check: should never be false due to inspect.Analyzer dependency
