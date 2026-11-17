@@ -113,11 +113,12 @@ func exemptSortParameters(info *types.Info, call *ast.CallExpr, exemptVariables 
 	}
 }
 
-// Report only declarations, including parameters and named results. Fields and
-// discarded results are not local error names, and aliases of error still count.
+// Report only local declarations, including parameters and named results.
+// Package-level errors need descriptive names (for example sentinel errors),
+// while fields and discarded results are not local error names. Aliases count.
 func handleErrorName(pass *analysis.Pass, name *ast.Ident) bool {
 	variable, ok := pass.TypesInfo.Defs[name].(*types.Var)
-	if !ok || variable.IsField() || name.Name == "_" || name.Name == "err" ||
+	if !ok || variable.IsField() || variable.Parent() == pass.Pkg.Scope() || name.Name == "_" || name.Name == "err" ||
 		!types.Identical(variable.Type(), types.Universe.Lookup("error").Type()) {
 		return false
 	}

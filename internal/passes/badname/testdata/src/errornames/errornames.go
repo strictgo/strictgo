@@ -2,15 +2,22 @@ package errornames
 
 import "errors"
 
-var ErrFailure = errors.New("failure") // want `error variable "ErrFailure" should be named err`
+var (
+	ErrFailure       = errors.New("failure")
+	errFoo           = errors.New("foo")
+	errUninitialized error
+	errAliased       errorAlias = errors.New("aliased")
+)
 
 type errorAlias = error
 
 func names() {
 	closeErr := errors.New("close") // want `error variable "closeErr" should be named err`
-	_, readErr := result()          // want `error variable "readErr" should be named err`
-	var writeErr error              // want `error variable "writeErr" should be named err`
-	var aliasErr errorAlias         // want `error variable "aliasErr" should be named err`
+	errFoo := errors.New("local")   // want `error variable "errFoo" should be named err`
+	println(errFoo)
+	_, readErr := result()  // want `error variable "readErr" should be named err`
+	var writeErr error      // want `error variable "writeErr" should be named err`
+	var aliasErr errorAlias // want `error variable "aliasErr" should be named err`
 	var err error
 	err = closeErr
 	_, err = result()
@@ -37,8 +44,10 @@ func singleLetter() {
 
 // Names alone must not trigger the rule, nor should fields or concrete types
 // implementing error be confused with variables of the built-in error type.
-type record struct{ closeErr error }
-type concreteError struct{}
+type (
+	record        struct{ closeErr error }
+	concreteError struct{}
+)
 
 func (concreteError) Error() string { return "failure" }
 
