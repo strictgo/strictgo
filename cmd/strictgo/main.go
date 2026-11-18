@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os"
+
+	"github.com/strictgo/strictgo/internal/diff"
 	"github.com/strictgo/strictgo/internal/passes/badname"
 	"github.com/strictgo/strictgo/internal/passes/blankparam"
 	"github.com/strictgo/strictgo/internal/passes/boolswitch"
@@ -22,6 +25,9 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "diff" {
+		os.Exit(diff.Run(os.Args[2:], os.Stdout, os.Stderr))
+	}
 	multichecker.Main(
 		badname.Analyzer,
 		blankparam.Analyzer,

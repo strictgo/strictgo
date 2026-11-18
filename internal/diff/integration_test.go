@@ -1,0 +1,142 @@
+package diff
+
+import (
+	"context"
+	"errors"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"testing"
+	"time"
+)
+
+func TestCommittedSnapshot(t *testing.T) {
+	if testing.Short() {
+		t.Skip("builds and runs the strictgo executable")
+	}
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("Git is not installed")
+	}
+	t.Setenv("GOWORK", "off")
+	t.Setenv("GOPACKAGESDRIVER", "off")
+	t.Setenv("GOFLAGS", "")
+	binary := filepath.Join(t.TempDir(), "strictgo")
+	if runtime.GOOS == "windows" {
+		binary += ".exe"
+	}
+	build := exec.Command("go", "build", "-o", binary, "../../cmd/strictgo")
+	if output, err := build.CombinedOutput(); err != nil {
+		t.Fatalf("build strictgo: %v\n%s", err, output)
+	}
+	repo := filepath.Join(t.TempDir(), "repository with spaces")
+	if err := os.MkdirAll(repo, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	gitTest(t, repo, "init", "-b", "main")
+	gitTest(t, repo, "config", "user.name", "Strictgo Test")
+	gitTest(t, repo, "config", "user.email", "strictgo@example.test")
+	gitTest(t, repo, "config", "commit.gpgsign", "false")
+	gitTest(t, repo, "config", "core.autocrlf", "false")
+	writeTest(t, filepath.Join(repo, "go.mod"), "module example.com/diffdemo\n\ngo 1.27.0\n")
+	baseline := "package demo\n\n" + counterFunction("existing", "x")
+	writeTest(t, filepath.Join(repo, "demo.go"), baseline)
+	writeTest(t, filepath.Join(repo, "sub", "sub.go"), "package sub\n\nfunc quiet() {}\n")
+	gitTest(t, repo, "add", ".")
+	gitTest(t, repo, "commit", "-qm", "base")
+	gitTest(t, repo, "switch", "-c", "topic")
+	writeTest(t, filepath.Join(repo, "demo.go"), baseline+"\n"+counterFunction("added", "y"))
+	writeTest(t, filepath.Join(repo, "sub", "sub.go"), "package sub\n\nfunc quiet() {}\n\n"+counterFunction("added", "z"))
+	gitTest(t, repo, "add", ".")
+	gitTest(t, repo, "commit", "-qm", "changes")
+	worktrees := gitTest(t, repo, "worktree", "list", "--porcelain")
+
+	// Deliberately break both the index and working tree. Neither may influence
+	// analysis of HEAD or be changed by the isolated worktree.
+	dirty := "this is not Go source\n"
+	writeTest(t, filepath.Join(repo, "demo.go"), dirty)
+	gitTest(t, repo, "add", "demo.go")
+	writeTest(t, filepath.Join(repo, "untracked.go"), dirty)
+	t.Setenv("GOWORK", filepath.Join(repo, "missing.go.work"))
+	t.Setenv("GOPACKAGESDRIVER", filepath.Join(repo, "missing-driver"))
+	code, output, messages := runTool(t, binary, repo, "diff", "--base", "main", "./...")
+	if code != 3 || !strings.Contains(output, `variable "y"`) || !strings.Contains(output, `variable "z"`) || strings.Contains(output, `variable "x"`) {
+		t.Fatalf("diff = %d\nstdout: %s\nstderr: %s", code, output, messages)
+	}
+	if contents, err := os.ReadFile(filepath.Join(repo, "demo.go")); err != nil || string(contents) != dirty {
+		t.Fatalf("original checkout was modified: %q, %v", contents, err)
+	}
+	if after := gitTest(t, repo, "worktree", "list", "--porcelain"); after != worktrees {
+		t.Fatalf("worktree leaked or HEAD changed:\nbefore: %s\nafter: %s", worktrees, after)
+	}
+
+	code, output, messages = runTool(t, binary, filepath.Join(repo, "sub"), "diff", "--base=main", "./...")
+	if code != 3 || !strings.Contains(output, "sub/sub.go:") || !strings.Contains(output, `variable "z"`) || strings.Contains(output, `variable "y"`) {
+		t.Fatalf("subdirectory diff = %d\n%s\n%s", code, output, messages)
+	}
+	code, output, messages = runTool(t, binary, repo, "diff", "--base=main", filepath.Join(repo, "sub", "..."))
+	if code != 3 || !strings.Contains(output, "sub/sub.go:") || strings.Contains(output, `variable "y"`) {
+		t.Fatalf("absolute pattern = %d\n%s\n%s", code, output, messages)
+	}
+	code, output, messages = runTool(t, binary, repo, "diff", "--base=HEAD", "./...")
+	if code != 0 || output != "" {
+		t.Fatalf("no changed lines = %d\n%s\n%s", code, output, messages)
+	}
+	code, output, messages = runTool(t, binary, repo, "diff", "--base=missing-revision", "./...")
+	if code != 1 || !strings.Contains(messages, "cannot resolve revision") {
+		t.Fatalf("missing base = %d\n%s\n%s", code, output, messages)
+	}
+
+	gitTest(t, repo, "reset", "--hard", "HEAD")
+	if err := os.Remove(filepath.Join(repo, "untracked.go")); err != nil {
+		t.Fatal(err)
+	}
+	writeTest(t, filepath.Join(repo, "demo.go"), "package demo\nfunc broken(\n")
+	gitTest(t, repo, "add", ".")
+	gitTest(t, repo, "commit", "-qm", "broken snapshot")
+	code, output, messages = runTool(t, binary, repo, "diff", "--base=HEAD", "./...")
+	if code != 1 || messages == "" || output != "" {
+		t.Fatalf("analysis failure looked clean: %d\n%s\n%s", code, output, messages)
+	}
+}
+
+func counterFunction(name, variable string) string {
+	return "func " + name + "() {\n\t" + variable + " := 1\n" + strings.Repeat("\tprintln("+variable+")\n", 8) + "}\n"
+}
+
+func writeTest(t *testing.T, path, text string) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte(text), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func gitTest(t *testing.T, directory string, args ...string) string {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	output, err := git(ctx, directory, args...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(output)
+}
+
+func runTool(t *testing.T, binary, directory string, args ...string) (int, string, string) {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	output, messages, err := command(ctx, directory, nil, binary, args...)
+	if err != nil {
+		var exit *exec.ExitError
+		if !errors.As(err, &exit) {
+			t.Fatal(err)
+		}
+		return exit.ExitCode(), string(output), string(messages)
+	}
+	return 0, string(output), string(messages)
+}
