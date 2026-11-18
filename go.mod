@@ -1,6 +1,6 @@
 module github.com/strictgo/strictgo
 
-go 1.26.5
+go 1.27.4
 
 require golang.org/x/tools v0.50.0
 
