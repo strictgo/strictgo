@@ -34,7 +34,7 @@ strictgo -fix ./...
 | `blankparam` | Flags explicit `_` parameters in functions, methods, literals, interfaces, and function types. Suggests collision-safe names, including `ctx` for `context.Context`. |
 | `boolswitch` | Prefers `if` statements and early returns over boolean or expressionless `switch` statements. |
 | `declorder` | Enforces a consistent order for top-level declarations, including types, constructors, methods, and functions. |
-| `errcheck` | Requires comparisons in the form `err != nil`. Despite the name, it does not check for ignored errors. |
+| `errcheck` | Requires `err != nil` comparisons and flags explicit nil error returns inside non-nil error branches. Does not check for ignored error results. |
 | `forcederef` | Flags explicit pointer dereferences used to satisfy function or method signatures within the same module. |
 | `forint` | Flags traditional `for` loops with integer counters. |
 | `importname` | Requires lowercase import names without underscores and flags redundant aliases. Offers collision-safe fixes; `_` and `.` imports are flagged without fixes, while cgo's `C` import is exempt. |
