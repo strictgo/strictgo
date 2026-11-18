@@ -40,6 +40,7 @@ strictgo -fix ./...
 | `importname` | Requires lowercase import names without underscores and flags redundant aliases. Offers collision-safe fixes; `_` and `.` imports are flagged without fixes, while cgo's `C` import is exempt. |
 | `keepflat` | Flags nesting deeper than five blocks within a function. |
 | `limitscope` | Flags opportunities to narrow variable scope, such as moving an `err` assignment into the following `if` initializer. |
+| `nilreceiver` | Flags direct nil comparisons and nil switch cases on method receivers. |
 | `nilresult` | For functions returning a pointer or struct alongside an error, expects a nil pointer or zero-value struct on error. |
 | `noelse` | Flags unnecessary `else` branches after returning branches, with scope-safe fixes. |
 | `okcheck` | Flags discarding the boolean result of a `(value, bool)` function call or comma-ok type assertion with `_`. |

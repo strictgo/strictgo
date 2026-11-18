@@ -11,6 +11,7 @@ import (
 	"github.com/strictgo/strictgo/internal/passes/importname"
 	"github.com/strictgo/strictgo/internal/passes/keepflat"
 	"github.com/strictgo/strictgo/internal/passes/limitscope"
+	"github.com/strictgo/strictgo/internal/passes/nilreceiver"
 	"github.com/strictgo/strictgo/internal/passes/nilresult"
 	"github.com/strictgo/strictgo/internal/passes/noelse"
 	"github.com/strictgo/strictgo/internal/passes/okcheck"
@@ -32,6 +33,7 @@ func main() {
 		importname.Analyzer,
 		keepflat.Analyzer,
 		limitscope.Analyzer,
+		nilreceiver.Analyzer,
 		nilresult.Analyzer,
 		noelse.Analyzer,
 		okcheck.Analyzer,
