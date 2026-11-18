@@ -16,6 +16,7 @@ const (
 	constantDeclarations = iota
 	variableDeclarations
 	mainEntrypoints
+	testEntrypoints
 	typeDeclarations
 	constructors
 	analysisEntrypoints
@@ -25,7 +26,7 @@ const (
 
 var Analyzer = &analysis.Analyzer{
 	Name: "declorder",
-	Doc:  "order file preambles and type blocks: type, constructors, methods, functions",
+	Doc:  "order file preambles and type blocks, with test entrypoints before test helpers",
 	Run:  run,
 }
 
@@ -33,6 +34,7 @@ var categoryNames = [...]string{
 	"const declarations",
 	"var declarations",
 	"main entrypoints",
+	"test entrypoints",
 	"type declarations",
 	"constructors",
 	"analysis entrypoints",
@@ -46,6 +48,9 @@ func run(pass *analysis.Pass) (any, error) {
 		if ast.IsGenerated(file) {
 			continue
 		}
+		if isTestFile(pass, file) {
+			checkTestOrder(pass, file)
+		}
 		checkFile(pass, file, entrypoints)
 	}
 	return nil, nil
@@ -57,10 +62,17 @@ func run(pass *analysis.Pass) (any, error) {
 // recently encountered block; returning to an earlier type does not reset it.
 func checkFile(pass *analysis.Pass, file *ast.File, entrypoints map[types.Object]bool) {
 	mainTypes := constructedTypes(pass, file)
+	testFile := isTestFile(pass, file)
 	groups := make(map[types.Object]int)
 	var active types.Object
 	highest := -1
 	for _, declaration := range file.Decls {
+		if function, ok := declaration.(*ast.FuncDecl); testFile && ok && testEntrypoint(pass.TypesInfo, function) {
+			// Tests lead their own section rather than belonging to a helper
+			// type block or pushing subsequent helper methods below functions.
+			highest = max(highest, testEntrypoints)
+			continue
+		}
 		category, ok := declarationCategory(declaration, pass.TypesInfo, mainTypes, entrypoints)
 		if !ok {
 			continue

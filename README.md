@@ -33,7 +33,7 @@ strictgo -fix ./...
 | `badname` | Flags local error variables not named `err`, single-letter names outside short scopes, redundant `Str`/`Map` suffixes, and generic package or file names using `util`, `utils`, `helper`, `helpers`, or `misc`. |
 | `blankparam` | Flags explicit `_` parameters in functions, methods, literals, interfaces, and function types. Suggests collision-safe names, including `ctx` for `context.Context`. |
 | `boolswitch` | Prefers `if` statements and early returns over boolean or expressionless `switch` statements. |
-| `declorder` | Enforces a consistent order for top-level declarations, including types, constructors, methods, and functions. |
+| `declorder` | Enforces ordering within top-level type blocks and places test entrypoints before helper types and functions in `_test.go` files. |
 | `errcheck` | Requires `err != nil` comparisons and flags explicit nil error returns inside non-nil error branches. Does not check for ignored error results. |
 | `forcederef` | Flags explicit pointer dereferences used to satisfy function or method signatures within the same module. |
 | `forint` | Flags traditional `for` loops with integer counters. |

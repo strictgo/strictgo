@@ -7,7 +7,7 @@ import (
 )
 
 func TestAnalyzer(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), Analyzer, "a", "blocks", "blockerrors", "entrypoints", "notanalysis", "mainbefore", "mainafter", "mainlate")
+	analysistest.Run(t, analysistest.TestData(), Analyzer, "a", "blocks", "blockerrors", "entrypoints", "notanalysis", "mainbefore", "mainafter", "mainlate", "testorder")
 }
 
 func TestConstructorName(t *testing.T) {
