@@ -24,7 +24,7 @@ func checkPackageAndFileNames(pass *analysis.Pass) {
 		// Use the physical filename, not a filename supplied by a //line directive.
 		filename := filepath.Base(pass.Fset.File(file.Pos()).Name())
 		stem := strings.TrimSuffix(filename, ".go")
-		for _, part := range strings.Split(stem, "_") {
+		for part := range strings.SplitSeq(stem, "_") {
 			if vagueName(part) {
 				pass.Reportf(file.Name.Pos(), "Go file name %q is too generic; use a name that describes its purpose", filename)
 				break

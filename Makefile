@@ -39,10 +39,11 @@ git-clean:
 		exit 1; \
 	fi
 
-check: check-tidy test lint
+check: fmt
+	$(MAKE) check-tidy test lint
+	$(MAKE) git-clean
 
 ci: check
-	$(MAKE) git-clean
 
 clean:
 	rm -rf bin
