@@ -7,6 +7,7 @@ import (
 	"github.com/strictgo/strictgo/internal/passes/badname"
 	"github.com/strictgo/strictgo/internal/passes/blankparam"
 	"github.com/strictgo/strictgo/internal/passes/boolswitch"
+	"github.com/strictgo/strictgo/internal/passes/declnear"
 	"github.com/strictgo/strictgo/internal/passes/declorder"
 	"github.com/strictgo/strictgo/internal/passes/errcheck"
 	"github.com/strictgo/strictgo/internal/passes/forcederef"
@@ -32,6 +33,7 @@ func main() {
 		badname.Analyzer,
 		blankparam.Analyzer,
 		boolswitch.Analyzer,
+		declnear.Analyzer,
 		declorder.Analyzer,
 		errcheck.Analyzer,
 		forcederef.Analyzer,

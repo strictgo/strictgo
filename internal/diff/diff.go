@@ -22,11 +22,6 @@ Analyze committed HEAD and report diagnostics on added Go lines.
 Packages default to ./.... Uncommitted changes are excluded.
 `
 
-type options struct {
-	base     string
-	packages []string
-}
-
 // Run implements the diff subcommand. Exit codes match the analysis driver:
 // 0 for no relevant findings, 3 for findings, 1 for failures, 2 for bad arguments.
 func Run(args []string, stdout, stderr io.Writer) int {
@@ -59,6 +54,11 @@ func reportError(output io.Writer, err error, code int) int {
 		return 1
 	}
 	return code
+}
+
+type options struct {
+	base     string
+	packages []string
 }
 
 func parseOptions(args []string, output io.Writer) (options, error) {
@@ -231,7 +231,7 @@ func snapshotEnvironment() ([]string, error) {
 			continue
 		}
 		if name == "GOFLAGS" {
-			for _, field := range strings.Fields(value) {
+			for field := range strings.FieldsSeq(value) {
 				field = strings.Trim(field, "\"'")
 				for _, unsafe := range []string{"-overlay", "-modfile", "-C"} {
 					if field == unsafe || strings.HasPrefix(field, unsafe+"=") {

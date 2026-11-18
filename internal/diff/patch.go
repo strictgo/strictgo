@@ -20,7 +20,7 @@ func parsePatch(patch []byte) (addedLines, error) {
 	var filename string
 	var haveHeader bool
 	var oldRemaining, newRemaining, nextLine int
-	for _, line := range bytes.Split(patch, []byte{'\n'}) {
+	for line := range bytes.SplitSeq(patch, []byte{'\n'}) {
 		if bytes.HasPrefix(line, []byte(`\ No newline at end of file`)) {
 			continue
 		}

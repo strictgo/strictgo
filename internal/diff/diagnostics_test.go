@@ -30,8 +30,8 @@ func TestFilterDiagnostics(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := []finding{
-		{location: location{filename: "a:b.go", line: 3, column: 2}, analyzer: "badname", message: "new"},
-		{location: location{filename: "relative.go", line: 4, column: 5}, analyzer: "badname", message: "relative"},
+		{filename: "a:b.go", line: 3, column: 2, analyzer: "badname", message: "new"},
+		{filename: "relative.go", line: 4, column: 5, analyzer: "badname", message: "relative"},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("findings = %#v, want %#v", got, want)
