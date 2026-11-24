@@ -16,10 +16,11 @@ import (
 	"time"
 )
 
-const usage = `Usage: strictgo diff [--base origin/main] [packages...]
+const usage = `Usage: strictgo diff [--base REV] [packages...]
 
 Analyze committed HEAD and report diagnostics on added Go lines.
-Packages default to ./.... Uncommitted changes are excluded.
+The base defaults to the repository's default branch, detected locally.
+Packages default to ./...; uncommitted changes are excluded.
 `
 
 // Run implements the diff subcommand. Exit codes match the analysis driver:
@@ -71,7 +72,7 @@ func parseOptions(args []string, output io.Writer) (options, error) {
 			usageFailed = true
 		}
 	}
-	flags.StringVar(&settings.base, "base", "origin/main", "base revision")
+	flags.StringVar(&settings.base, "base", "", "base revision (default: auto-detect the repository's default branch)")
 	err := flags.Parse(args)
 	if usageFailed {
 		return options{}, errors.New("could not write diff usage")
@@ -79,7 +80,13 @@ func parseOptions(args []string, output io.Writer) (options, error) {
 	if err != nil {
 		return options{}, err
 	}
-	if settings.base == "" {
+	var explicitBase bool
+	flags.Visit(func(option *flag.Flag) {
+		if option.Name == "base" {
+			explicitBase = true
+		}
+	})
+	if explicitBase && settings.base == "" {
 		return options{}, errors.New("--base must not be empty")
 	}
 	settings.packages = flags.Args()
@@ -110,6 +117,12 @@ func check(ctx context.Context, cwd, executable string, settings options, stdout
 	head, err := revision(ctx, root, "HEAD")
 	if err != nil {
 		return 0, err
+	}
+	if settings.base == "" {
+		settings.base, err = defaultBase(ctx, root)
+		if err != nil {
+			return 0, err
+		}
 	}
 	base, err := revision(ctx, root, settings.base)
 	if err != nil {

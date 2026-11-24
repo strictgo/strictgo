@@ -16,7 +16,7 @@ func TestOptions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if settings.base != "origin/main" || !reflect.DeepEqual(settings.packages, []string{"./..."}) {
+	if settings.base != "" || !reflect.DeepEqual(settings.packages, []string{"./..."}) {
 		t.Errorf("defaults = %+v", settings)
 	}
 	settings, err = parseOptions([]string{"--base", "main", "./cmd/..."}, &output)

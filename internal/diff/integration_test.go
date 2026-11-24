@@ -71,6 +71,17 @@ func TestCommittedSnapshot(t *testing.T) {
 		t.Fatalf("worktree leaked or HEAD changed:\nbefore: %s\nafter: %s", worktrees, after)
 	}
 
+	code, output, messages = runTool(t, binary, repo, "diff", "./...")
+	if code != 3 || !strings.Contains(output, `variable "y"`) || !strings.Contains(output, `variable "z"`) {
+		t.Fatalf("local default branch = %d\n%s\n%s", code, output, messages)
+	}
+	gitTest(t, repo, "update-ref", "refs/remotes/origin/trunk", "HEAD")
+	gitTest(t, repo, "symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/trunk")
+	code, output, messages = runTool(t, binary, repo, "diff", "./...")
+	if code != 0 || output != "" {
+		t.Fatalf("remote default branch = %d\n%s\n%s", code, output, messages)
+	}
+
 	code, output, messages = runTool(t, binary, filepath.Join(repo, "sub"), "diff", "--base=main", "./...")
 	if code != 3 || !strings.Contains(output, "sub/sub.go:") || !strings.Contains(output, `variable "z"`) || strings.Contains(output, `variable "y"`) {
 		t.Fatalf("subdirectory diff = %d\n%s\n%s", code, output, messages)
