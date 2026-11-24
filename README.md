@@ -30,7 +30,7 @@ strictgo -fix ./...
 
 | Analyzer | What it checks |
 |---|---|
-| `badname` | Flags local error variables not named `err`, single-letter names outside short scopes, redundant `Str`/`Map` suffixes, and generic package or file names using `util`, `utils`, `helper`, `helpers`, or `misc`. |
+| `badname` | Flags local error variables not named `err`, `testing.TB` variables named `t` instead of `tb`, single-letter names outside short scopes, redundant `Str`/`Map` suffixes, and generic package or file names using `util`, `utils`, `helper`, `helpers`, or `misc`. |
 | `blankparam` | Flags explicit `_` parameters in functions, methods, literals, interfaces, and function types. Suggests collision-safe names, including `ctx` for `context.Context`. |
 | `boolswitch` | Prefers `if` statements and early returns over boolean or expressionless `switch` statements. |
 | `declnear` | Flags unexported, method-free structs separated from their first explicit function reference by unrelated functions. Initially skips grouped, shared, and test-file types. |
@@ -48,4 +48,5 @@ strictgo -fix ./...
 | `returnstructs` | Flags functions and methods that return interfaces rather than concrete types, with exceptions such as `error` and `any`. |
 | `scopesprawl` | Flags files with too many concepts, grouping types/methods, constructors, functional-option families, and exclusively owned private helpers/data/state. Shared private constants do not add concepts. Reports group names; defaults to 5 (`-scopesprawl.limit=N`). Test and generated files are excluded from reporting. |
 | `singleassign` | Prefers separate assignments for separate right-hand-side expressions, while allowing swaps and rotations. |
+| `testingtb` | Recommends `testing.TB` for directly called helpers that do not need `*testing.T`. Preserves test entrypoints, callbacks, and T-specific uses. Diagnostic-only. |
 | `zeroinit` | Flags redundant zero-value initializers for basic types, such as `count := 0` where `var count int` would do. |

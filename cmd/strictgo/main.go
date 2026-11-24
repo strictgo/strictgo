@@ -22,6 +22,7 @@ import (
 	"github.com/strictgo/strictgo/internal/passes/returnstruct"
 	"github.com/strictgo/strictgo/internal/passes/scopesprawl"
 	"github.com/strictgo/strictgo/internal/passes/singleassign"
+	"github.com/strictgo/strictgo/internal/passes/testingtb"
 	"github.com/strictgo/strictgo/internal/passes/zeroinit"
 	"golang.org/x/tools/go/analysis/multichecker"
 )
@@ -49,6 +50,7 @@ func main() {
 		returnstruct.Analyzer,
 		scopesprawl.Analyzer,
 		singleassign.Analyzer,
+		testingtb.Analyzer,
 		zeroinit.Analyzer,
 	)
 }

@@ -75,11 +75,11 @@ func TestParsePosition(t *testing.T) {
 	}
 }
 
-func jsonBytes(t *testing.T, value any) []byte {
-	t.Helper()
+func jsonBytes(tb testing.TB, value any) []byte {
+	tb.Helper()
 	data, err := json.Marshal(value)
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	return data
 }

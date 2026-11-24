@@ -1,6 +1,9 @@
 package nofix
 
-import "context"
+import (
+	"context"
+	"testing"
+)
 
 var ctx = context.Background()
 
@@ -31,3 +34,5 @@ func (ctx record) method(_ context.Context) {} // want "blank parameter obscures
 type Type struct{}
 
 func keyword(_ Type) {} // want "blank parameter obscures its purpose"
+
+func commonCollision(_ testing.TB, tb testing.TB) {} // want "blank parameter obscures its purpose"

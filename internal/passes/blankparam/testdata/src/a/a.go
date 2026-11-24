@@ -52,6 +52,8 @@ func variadic(_ ...string) {} // want "blank parameter obscures its purpose"
 
 func testCallback(_ *testing.T) {} // want "blank parameter obscures its purpose"
 
+func commonCallback(_ testing.TB) {} // want "blank parameter obscures its purpose"
+
 // Unnamed parameters and blank results are outside this rule.
 func unnamed(context.Context) {}
 func blankResult() (_ int)    { return 0 }

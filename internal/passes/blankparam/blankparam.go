@@ -110,7 +110,7 @@ func parameterName(typ types.Type) string {
 					return strings.ToLower(object.Name())
 				}
 				if object.Name() == "TB" {
-					return "t"
+					return "tb"
 				}
 			}
 		}

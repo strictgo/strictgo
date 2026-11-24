@@ -63,7 +63,7 @@ func run(pass *analysis.Pass) (any, error) {
 				}
 			}
 		case *ast.Ident:
-			if !handleErrorName(pass, node) {
+			if !handleErrorName(pass, node) && !handleTestingTBName(pass, node) {
 				handleSingleLetter(pass, node, exemptVariables)
 			}
 		case *ast.ValueSpec:
@@ -126,6 +126,22 @@ func handleErrorName(pass *analysis.Pass, name *ast.Ident) bool {
 	return true
 }
 
+func handleTestingTBName(pass *analysis.Pass, name *ast.Ident) bool {
+	if name.Name != "t" {
+		return false
+	}
+	variable, ok := pass.TypesInfo.Defs[name].(*types.Var)
+	if !ok {
+		return false
+	}
+	named, ok := types.Unalias(variable.Type()).(*types.Named)
+	if !ok || named.Obj().Name() != "TB" || named.Obj().Pkg() == nil || named.Obj().Pkg().Path() != "testing" {
+		return false
+	}
+	pass.Reportf(name.Pos(), "testing.TB variable %q should be named tb", name.Name)
+	return true
+}
+
 func handleSingleLetter(pass *analysis.Pass, name *ast.Ident, exemptVariables map[types.Object]bool) {
 	letter, size := utf8.DecodeRuneInString(name.Name)
 	if size != len(name.Name) || !unicode.IsLetter(letter) {
@@ -163,7 +179,7 @@ func conventionalTestingName(variable *types.Var) bool {
 	}
 	name := variable.Name()
 	if !isPointer {
-		return named.Obj().Name() == "TB" && (name == "t" || name == "b" || name == "f")
+		return named.Obj().Name() == "TB" && (name == "b" || name == "f")
 	}
 	switch named.Obj().Name() {
 	case "T":

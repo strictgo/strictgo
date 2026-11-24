@@ -116,36 +116,36 @@ func counterFunction(name, variable string) string {
 	return "func " + name + "() {\n\t" + variable + " := 1\n" + strings.Repeat("\tprintln("+variable+")\n", 8) + "}\n"
 }
 
-func writeTest(t *testing.T, path, text string) {
-	t.Helper()
+func writeTest(tb testing.TB, path, text string) {
+	tb.Helper()
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	if err := os.WriteFile(path, []byte(text), 0o644); err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 }
 
-func gitTest(t *testing.T, directory string, args ...string) string {
-	t.Helper()
+func gitTest(tb testing.TB, directory string, args ...string) string {
+	tb.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	output, err := git(ctx, directory, args...)
 	if err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
 	return string(output)
 }
 
-func runTool(t *testing.T, binary, directory string, args ...string) (int, string, string) {
-	t.Helper()
+func runTool(tb testing.TB, binary, directory string, args ...string) (int, string, string) {
+	tb.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	output, messages, err := command(ctx, directory, nil, binary, args...)
 	if err != nil {
 		var exit *exec.ExitError
 		if !errors.As(err, &exit) {
-			t.Fatal(err)
+			tb.Fatal(err)
 		}
 		return exit.ExitCode(), string(output), string(messages)
 	}
