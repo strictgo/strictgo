@@ -20,6 +20,7 @@ import (
 	"github.com/strictgo/strictgo/internal/passes/noelse"
 	"github.com/strictgo/strictgo/internal/passes/okcheck"
 	"github.com/strictgo/strictgo/internal/passes/returnstruct"
+	"github.com/strictgo/strictgo/internal/passes/scopesprawl"
 	"github.com/strictgo/strictgo/internal/passes/singleassign"
 	"github.com/strictgo/strictgo/internal/passes/zeroinit"
 	"golang.org/x/tools/go/analysis/multichecker"
@@ -46,6 +47,7 @@ func main() {
 		noelse.Analyzer,
 		okcheck.Analyzer,
 		returnstruct.Analyzer,
+		scopesprawl.Analyzer,
 		singleassign.Analyzer,
 		zeroinit.Analyzer,
 	)

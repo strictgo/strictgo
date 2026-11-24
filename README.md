@@ -46,5 +46,6 @@ strictgo -fix ./...
 | `noelse` | Flags unnecessary `else` branches after returning branches, with scope-safe fixes. |
 | `okcheck` | Flags discarding the boolean result of a `(value, bool)` function call or comma-ok type assertion with `_`. |
 | `returnstructs` | Flags functions and methods that return interfaces rather than concrete types, with exceptions such as `error` and `any`. |
+| `scopesprawl` | Flags files with too many concepts, grouping types/methods, constructors, functional-option families, and exclusively owned private helpers/data/state. Shared private constants do not add concepts. Reports group names; defaults to 5 (`-scopesprawl.limit=N`). Test and generated files are excluded from reporting. |
 | `singleassign` | Prefers separate assignments for separate right-hand-side expressions, while allowing swaps and rotations. |
 | `zeroinit` | Flags redundant zero-value initializers for basic types, such as `count := 0` where `var count int` would do. |
