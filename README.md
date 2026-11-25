@@ -10,8 +10,6 @@ Its analyzers focus on simpler control flow, smaller variable scopes, clearer AP
 go install github.com/strictgo/strictgo/cmd/strictgo@latest
 ```
 
-Ensure your Go bin directory (`$(go env GOPATH)/bin` by default) is on `PATH`.
-
 ## Usage
 
 Run from your Go module:
@@ -25,8 +23,6 @@ Apply available fixes automatically:
 ```sh
 strictgo -fix ./...
 ```
-
-Files marked `// Code generated … DO NOT EDIT.` receive no diagnostics or fixes, but remain available as analysis context.
 
 ## Analyzers
 
