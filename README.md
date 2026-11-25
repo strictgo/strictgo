@@ -32,7 +32,7 @@ Files marked `// Code generated … DO NOT EDIT.` receive no diagnostics or fixe
 
 | Analyzer | What it checks |
 |---|---|
-| `badname` | Flags local error variables not named `err`, `testing.TB` variables named `t` instead of `tb`, single-letter names outside short scopes, redundant `Str`/`Map` suffixes, and generic package or file names using `util`, `utils`, `helper`, `helpers`, or `misc`. |
+| `badname` | Flags local error variables not named `err`, `testing.TB` variables named `t` instead of `tb`, single-letter names outside short scopes (allowing loop index `i` and nested `j`), redundant `Str`/`Map` suffixes, and generic package or file names using `util`, `utils`, `helper`, `helpers`, or `misc`. |
 | `blankparam` | Flags explicit `_` parameters in functions, methods, literals, interfaces, and function types. Suggests collision-safe names, including `ctx` for `context.Context`. |
 | `boolswitch` | Prefers `if` statements and early returns over boolean or expressionless `switch` statements. |
 | `declnear` | Flags unexported, method-free structs separated from their first explicit function reference by unrelated functions. Initially skips grouped, shared, and test-file types. |

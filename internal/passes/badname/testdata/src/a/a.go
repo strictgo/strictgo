@@ -74,7 +74,7 @@ func loops(values []int) {
 		println(values[i])
 		println(values[i])
 	}
-	for i, v := range values { // want `variable "i" has a single-letter name outside a short scope` `variable "v" has a single-letter name outside a short scope`
+	for i, v := range values { // want `variable "v" has a single-letter name outside a short scope`
 		println(i, v)
 		println(i, v)
 		println(i, v)
