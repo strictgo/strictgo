@@ -24,6 +24,7 @@ import (
 	"github.com/strictgo/strictgo/internal/passes/singleassign"
 	"github.com/strictgo/strictgo/internal/passes/testingtb"
 	"github.com/strictgo/strictgo/internal/passes/zeroinit"
+	"github.com/strictgo/strictgo/internal/reportingrules"
 	"golang.org/x/tools/go/analysis/multichecker"
 )
 
@@ -32,25 +33,27 @@ func main() {
 		os.Exit(diff.Run(os.Args[2:], os.Stdout, os.Stderr))
 	}
 	multichecker.Main(
-		badname.Analyzer,
-		blankparam.Analyzer,
-		boolswitch.Analyzer,
-		declnear.Analyzer,
-		declorder.Analyzer,
-		errcheck.Analyzer,
-		forcederef.Analyzer,
-		forint.Analyzer,
-		importname.Analyzer,
-		keepflat.Analyzer,
-		limitscope.Analyzer,
-		nilreceiver.Analyzer,
-		nilresult.Analyzer,
-		noelse.Analyzer,
-		okcheck.Analyzer,
-		returnstruct.Analyzer,
-		scopesprawl.Analyzer,
-		singleassign.Analyzer,
-		testingtb.Analyzer,
-		zeroinit.Analyzer,
+		reportingrules.IgnoreGenerated(
+			badname.Analyzer,
+			blankparam.Analyzer,
+			boolswitch.Analyzer,
+			declnear.Analyzer,
+			declorder.Analyzer,
+			errcheck.Analyzer,
+			forcederef.Analyzer,
+			forint.Analyzer,
+			importname.Analyzer,
+			keepflat.Analyzer,
+			limitscope.Analyzer,
+			nilreceiver.Analyzer,
+			nilresult.Analyzer,
+			noelse.Analyzer,
+			okcheck.Analyzer,
+			returnstruct.Analyzer,
+			scopesprawl.Analyzer,
+			singleassign.Analyzer,
+			testingtb.Analyzer,
+			zeroinit.Analyzer,
+		)...,
 	)
 }

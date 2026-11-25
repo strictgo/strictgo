@@ -26,6 +26,8 @@ Apply available fixes automatically:
 strictgo -fix ./...
 ```
 
+Files marked `// Code generated … DO NOT EDIT.` receive no diagnostics or fixes, but remain available as analysis context.
+
 ## Analyzers
 
 | Analyzer | What it checks |
