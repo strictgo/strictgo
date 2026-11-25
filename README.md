@@ -50,5 +50,6 @@ Files marked `// Code generated … DO NOT EDIT.` receive no diagnostics or fixe
 | `returnstructs` | Flags functions and methods that return interfaces rather than concrete types, with exceptions such as `error` and `any`. |
 | `scopesprawl` | Flags files with too many concepts, grouping types/methods, constructors, functional-option families, and exclusively owned private helpers/data/state. Shared private constants do not add concepts. Reports group names; defaults to 5 (`-scopesprawl.limit=N`). Test and generated files are excluded from reporting. |
 | `singleassign` | Prefers separate assignments for separate right-hand-side expressions, while allowing swaps and rotations. |
+| `singleusestring` | Flags unexported, untyped, single-line string constants with exactly one reference. Excludes grouped declarations; offers comment-safe fixes for literal initializers. |
 | `testingtb` | Recommends `testing.TB` for directly called helpers that do not need `*testing.T`. Preserves test entrypoints, callbacks, and T-specific uses. Diagnostic-only. |
 | `zeroinit` | Flags redundant zero-value initializers for basic types, such as `count := 0` where `var count int` would do. |
