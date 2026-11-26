@@ -36,7 +36,7 @@ strictgo -fix ./...
 | `errcheck` | Requires `err != nil` comparisons and flags explicit nil error returns inside non-nil error branches. Does not check for ignored error results. |
 | `forcederef` | Flags explicit pointer dereferences used to satisfy function or method signatures within the same module. |
 | `forint` | Flags traditional `for` loops with integer counters. |
-| `importname` | Requires lowercase import names without underscores and flags redundant aliases. Offers collision-safe fixes; `_` and `.` imports are flagged without fixes, while cgo's `C` import is exempt. |
+| `importname` | Requires lowercase import names without underscores and flags redundant aliases. Offers collision-safe fixes; `.` imports are flagged without fixes, while blank (`_`) imports and cgo's `C` import are exempt. |
 | `keepflat` | Flags nesting deeper than five blocks within a function. |
 | `limitscope` | Flags opportunities to narrow variable scope, such as moving an `err` assignment into the following `if` initializer. |
 | `nilreceiver` | Flags direct nil comparisons and nil switch cases on method receivers. |

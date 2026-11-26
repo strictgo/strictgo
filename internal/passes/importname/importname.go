@@ -26,6 +26,9 @@ func run(pass *analysis.Pass) (any, error) {
 			continue
 		}
 		for _, specification := range file.Imports {
+			if specification.Name != nil && specification.Name.Name == "_" {
+				continue // Side-effect imports do not introduce a usable name.
+			}
 			path, err := strconv.Unquote(specification.Path.Value)
 			if err != nil || path == "C" {
 				continue
