@@ -1,8 +1,0 @@
-package a
-
-import (
-	upper "capital/path" // want `import name "Upper" must use lowercase`
-	badname "odd/path"   // want `import name "bad_name" must use lowercase`
-)
-
-var implicit = badname.Value + upper.Value

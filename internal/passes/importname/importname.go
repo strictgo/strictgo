@@ -16,7 +16,7 @@ import (
 
 var Analyzer = &analysis.Analyzer{
 	Name: "importname",
-	Doc:  "require lowercase import names without underscores and reject redundant aliases",
+	Doc:  "require lowercase import aliases without underscores and reject redundant aliases",
 	Run:  run,
 }
 
@@ -26,25 +26,19 @@ func run(pass *analysis.Pass) (any, error) {
 			continue
 		}
 		for _, specification := range file.Imports {
-			if specification.Name != nil && specification.Name.Name == "_" {
-				continue // Side-effect imports do not introduce a usable name.
+			if specification.Name == nil || specification.Name.Name == "_" {
+				continue // Check only explicit, non-blank aliases.
 			}
 			path, err := strconv.Unquote(specification.Path.Value)
 			if err != nil || path == "C" {
 				continue
-			}
-			position := specification.Path.Pos()
-			end := specification.Path.End()
-			if specification.Name != nil {
-				position = specification.Name.Pos()
-				end = specification.Name.End()
 			}
 			binding := importBinding(pass.TypesInfo, specification)
 			if binding == nil {
 				continue
 			}
 			name := binding.Name()
-			redundant := specification.Name != nil && name == binding.Imported().Name()
+			redundant := name == binding.Imported().Name()
 			var message string
 			if !lowercaseName(name) {
 				message = "import name " + strconv.Quote(name) + " must use lowercase letters and digits, without underscores"
@@ -58,7 +52,7 @@ func run(pass *analysis.Pass) (any, error) {
 			}
 			candidate := strings.ReplaceAll(strings.ToLower(name), "_", "")
 			pass.Report(analysis.Diagnostic{
-				Pos: position, End: end, Message: message,
+				Pos: specification.Name.Pos(), End: specification.Name.End(), Message: message,
 				SuggestedFixes: importFix(pass, file, specification, binding, candidate),
 			})
 		}
@@ -97,16 +91,11 @@ func importFix(pass *analysis.Pass, file *ast.File, specification *ast.ImportSpe
 	if candidate != binding.Name() && !canRename(pass, file, binding, candidate) {
 		return nil
 	}
-	var edits []analysis.TextEdit
-	if specification.Name == nil {
-		edits = append(edits, analysis.TextEdit{Pos: specification.Path.Pos(), End: specification.Path.Pos(), NewText: []byte(candidate + " ")})
-	} else {
-		var replacement []byte
-		if candidate != binding.Imported().Name() {
-			replacement = []byte(candidate)
-		}
-		edits = append(edits, analysis.TextEdit{Pos: specification.Name.Pos(), End: specification.Name.End(), NewText: replacement})
+	var replacement []byte
+	if candidate != binding.Imported().Name() {
+		replacement = []byte(candidate)
 	}
+	edits := []analysis.TextEdit{{Pos: specification.Name.Pos(), End: specification.Name.End(), NewText: replacement}}
 	if candidate != binding.Name() {
 		for name, object := range pass.TypesInfo.Uses {
 			if object == binding {
