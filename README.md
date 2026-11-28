@@ -32,7 +32,7 @@ strictgo -fix ./...
 | `blankparam` | Flags explicit `_` parameters in functions, methods, literals, interfaces, and function types. Suggests collision-safe names, including `ctx` for `context.Context`. |
 | `boolswitch` | Prefers `if` statements and early returns over boolean or expressionless `switch` statements. |
 | `declnear` | Flags unexported, method-free structs separated from their first explicit function reference by unrelated functions. Initially skips grouped, shared, and test-file types. |
-| `declorder` | Enforces ordering within top-level type blocks and places test entrypoints before helper types and functions in `_test.go` files. |
+| `declorder` | Enforces ordering within top-level type blocks and places test entrypoints before helper types and functions in `_test.go` files. Recognizes constructors by `New`/`new` naming conventions or by a free function returning a package-defined concrete type (or pointer), optionally followed by `error`. |
 | `errcheck` | Requires `err != nil` comparisons and flags explicit nil error returns inside non-nil error branches. Does not check for ignored error results. |
 | `forcederef` | Flags explicit pointer dereferences used to satisfy function or method signatures within the same module. |
 | `forint` | Flags traditional `for` loops with integer counters. |

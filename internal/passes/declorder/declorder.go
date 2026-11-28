@@ -143,7 +143,7 @@ func registeredEntrypoints(pass *analysis.Pass) map[types.Object]bool {
 	return entrypoints
 }
 
-// A main type has a conventionally named constructor in this file returning
+// A main type has a constructor in this file returning
 // that type (or a pointer to it). Supporting types do not establish an ordering
 // boundary, even when a different file supplies a constructor for them.
 func constructedTypes(pass *analysis.Pass, file *ast.File) map[types.Object]bool {
@@ -191,7 +191,7 @@ func declarationOwners(declaration ast.Decl, info *types.Info, mainTypes map[typ
 }
 
 func constructorType(info *types.Info, function *ast.FuncDecl) *types.Named {
-	if function.Recv != nil || !constructorName(function.Name.Name) {
+	if function.Recv != nil {
 		return nil
 	}
 	object, ok := info.Defs[function.Name].(*types.Func)
@@ -202,7 +202,19 @@ func constructorType(info *types.Info, function *ast.FuncDecl) *types.Named {
 	if results.Len() == 0 {
 		return nil
 	}
-	return namedType(results.At(0).Type())
+	named := namedType(results.At(0).Type())
+	if constructorName(function.Name.Name) {
+		return named
+	}
+	// Without a naming signal, require a concrete type from this package and
+	// the conventional T or (T, error) result shape.
+	if named == nil || named.Obj().Pkg() != object.Pkg() || types.IsInterface(named) {
+		return nil
+	}
+	if results.Len() == 1 || (results.Len() == 2 && types.Identical(results.At(1).Type(), types.Universe.Lookup("error").Type())) {
+		return named
+	}
+	return nil
 }
 
 func namedType(typ types.Type) *types.Named {
@@ -243,7 +255,7 @@ func declarationCategory(declaration ast.Decl, info *types.Info, mainTypes, entr
 		if declaration.Recv != nil {
 			return methods, true
 		}
-		if constructorName(declaration.Name.Name) {
+		if constructorName(declaration.Name.Name) || constructorType(info, declaration) != nil {
 			return constructors, true
 		}
 		return functions, true
@@ -251,10 +263,8 @@ func declarationCategory(declaration ast.Decl, info *types.Info, mainTypes, entr
 	return 0, false
 }
 
-// Use naming conventions for this initial rule, not a guess about what a
-// function constructs. New, NewClient, and newClient are constructors;
-// Newline and newer are ordinary functions. Return types identify which type
-// declarations are main types, but do not affect the function's own category.
+// New, NewClient, and newClient follow the constructor naming convention;
+// Newline and newer do not.
 func constructorName(name string) bool {
 	for _, prefix := range []string{"New", "new"} {
 		if !strings.HasPrefix(name, prefix) {
