@@ -3,6 +3,11 @@ package a
 func pair() (int, int) { return 1, 2 }
 func source() int      { return 1 }
 
+func comparison() bool {
+	got, want := source(), 1 // want "use separate assignments for multiple value sources"
+	return got == want
+}
+
 func assignments(a, b, c int, values []int, channel <-chan int) {
 	a, b = 1, 2                               // want "use separate assignments for multiple value sources"
 	a, b, c = 1, 2, 3                         // want "use separate assignments for multiple value sources"

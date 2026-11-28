@@ -12,12 +12,13 @@ import (
 
 var Analyzer = &analysis.Analyzer{
 	Name: "singleassign",
-	Doc:  "require separate assignments for multiple sources, except swaps and rotations",
+	Doc:  "require separate assignments for multiple sources, except swaps, rotations, and got/want declarations in tests",
 	Run:  run,
 }
 
 func run(pass *analysis.Pass) (any, error) {
 	for _, file := range pass.Files {
+		isTest := strings.HasSuffix(pass.Fset.PositionFor(file.Pos(), false).Filename, "_test.go")
 		var stack []ast.Node
 		ast.Inspect(file, func(node ast.Node) bool {
 			if node == nil {
@@ -31,6 +32,9 @@ func run(pass *analysis.Pass) (any, error) {
 			stack = append(stack, node)
 			assignment, ok := node.(*ast.AssignStmt)
 			if !ok || len(assignment.Rhs) < 2 || len(assignment.Lhs) != len(assignment.Rhs) || permutation(assignment) {
+				return true
+			}
+			if isTest && gotWantDeclaration(assignment) {
 				return true
 			}
 			diagnostic := analysis.Diagnostic{
@@ -53,6 +57,15 @@ func run(pass *analysis.Pass) (any, error) {
 		})
 	}
 	return nil, nil
+}
+
+func gotWantDeclaration(assignment *ast.AssignStmt) bool {
+	if assignment.Tok != token.DEFINE || len(assignment.Lhs) != 2 {
+		return false
+	}
+	got, gotOK := assignment.Lhs[0].(*ast.Ident)
+	want, wantOK := assignment.Lhs[1].(*ast.Ident)
+	return gotOK && wantOK && got.Name == "got" && want.Name == "want"
 }
 
 // A permutation must use every distinct destination exactly once as a source.
