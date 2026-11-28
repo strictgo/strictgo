@@ -12,7 +12,7 @@ type GenericOption[T any] func(*T)
 
 func WithEnabled() Option {
 	return func(o *config) {
-		x := true // want `variable "x" has a single-letter name outside a short scope`
+		x := true
 		o.Enabled = x
 		println(o.Enabled)
 		println(o.Enabled)
@@ -89,6 +89,8 @@ func unrelated(o *Options, f Callback, g InvalidOption) { // want `variable "o" 
 	println(o.Enabled)
 	println(o.Enabled)
 	println(o.Enabled)
+	f(o)
+	g(1)
 }
 
 func errorNames() FallibleOption {

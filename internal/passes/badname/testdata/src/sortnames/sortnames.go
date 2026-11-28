@@ -34,6 +34,7 @@ func nested(values []int) {
 			println(i)
 			println(i)
 			println(i)
+			println(i)
 		}
 		callback := func(k int) { // want `variable "k" has a single-letter name outside a short scope`
 			println(k)

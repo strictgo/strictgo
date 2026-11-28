@@ -4,6 +4,7 @@ package badname
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"go/types"
 	"strings"
 	"unicode"
@@ -15,10 +16,8 @@ import (
 	"golang.org/x/tools/go/types/typeutil"
 )
 
-// maxShortScopeLines is the inclusive line span from a variable's declaration
-// to the end of its lexical scope. Using the scope rather than the last use
-// prevents unused or rarely used variables from appearing artificially local.
-const maxShortScopeLines = 7
+// maxShortUseLines is the inclusive line span from declaration to last use.
+const maxShortUseLines = 7
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "badname",
@@ -37,6 +36,12 @@ func run(pass *analysis.Pass) (any, error) {
 	exemptVariables := make(map[types.Object]bool)
 	exemptFunctionalOptions(pass, inspector, exemptVariables)
 	exemptLoopCounters(pass.TypesInfo, inspector, exemptVariables)
+	lastUses := make(map[*types.Var]token.Pos)
+	for name, object := range pass.TypesInfo.Uses {
+		if variable, ok := object.(*types.Var); ok && name.Pos() > lastUses[variable] {
+			lastUses[variable] = name.Pos()
+		}
+	}
 	filter := []ast.Node{
 		(*ast.AssignStmt)(nil),
 		(*ast.CallExpr)(nil),
@@ -64,7 +69,7 @@ func run(pass *analysis.Pass) (any, error) {
 			}
 		case *ast.Ident:
 			if !handleErrorName(pass, node) && !handleTestingTBName(pass, node) {
-				handleSingleLetter(pass, node, exemptVariables)
+				handleSingleLetter(pass, node, exemptVariables, lastUses)
 			}
 		case *ast.ValueSpec:
 			if len(node.Names) == 1 && len(node.Values) == 1 {
@@ -142,7 +147,7 @@ func handleTestingTBName(pass *analysis.Pass, name *ast.Ident) bool {
 	return true
 }
 
-func handleSingleLetter(pass *analysis.Pass, name *ast.Ident, exemptVariables map[types.Object]bool) {
+func handleSingleLetter(pass *analysis.Pass, name *ast.Ident, exemptVariables map[types.Object]bool, lastUses map[*types.Var]token.Pos) {
 	letter, size := utf8.DecodeRuneInString(name.Name)
 	if size != len(name.Name) || !unicode.IsLetter(letter) {
 		return
@@ -157,8 +162,9 @@ func handleSingleLetter(pass *analysis.Pass, name *ast.Ident, exemptVariables ma
 	}
 	if scope != pass.Pkg.Scope() {
 		start := pass.Fset.PositionFor(name.Pos(), false).Line
-		end := pass.Fset.PositionFor(scope.End(), false).Line
-		if end-start+1 <= maxShortScopeLines {
+		last := max(name.Pos(), lastUses[variable])
+		end := pass.Fset.PositionFor(last, false).Line
+		if end-start+1 <= maxShortUseLines {
 			return
 		}
 	}

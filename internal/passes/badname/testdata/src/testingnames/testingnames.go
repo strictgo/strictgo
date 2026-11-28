@@ -76,7 +76,7 @@ func unrelated(t *T, b *Distinct) { // want `variable "t" has a single-letter na
 	println("long scope")
 	println("long scope")
 	println("long scope")
-	println("long scope")
+	println(t, b)
 }
 
 func nonconventional(x *test.T, t test.T, b *test.T) { // want `variable "x" has a single-letter name outside a short scope` `variable "t" has a single-letter name outside a short scope` `variable "b" has a single-letter name outside a short scope`
@@ -86,5 +86,5 @@ func nonconventional(x *test.T, t test.T, b *test.T) { // want `variable "x" has
 	println("long scope")
 	println("long scope")
 	println("long scope")
-	println("long scope")
+	println(x, &t, b)
 }

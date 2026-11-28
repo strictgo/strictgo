@@ -22,9 +22,9 @@ func (r *T) method() {
 }
 
 func locals() {
-	x := 1    // want `variable "x" has a single-letter name outside a short scope`
-	var y int // want `variable "y" has a single-letter name outside a short scope`
-	π := 3    // want `variable "π" has a single-letter name outside a short scope`
+	x := 1
+	var y int
+	π := 3
 	longName := 4
 	_ = x
 	_ = y
@@ -46,10 +46,13 @@ func boundaryAllowed() {
 	println(x)
 	println(x)
 	println(x)
+	println(x)
+	println("after last use")
 }
 
 func boundaryRejected() {
 	x := 1 // want `variable "x" has a single-letter name outside a short scope`
+	println(x)
 	println(x)
 	println(x)
 	println(x)
@@ -92,7 +95,7 @@ func parameters(x int) (y int) { // want `variable "x" has a single-letter name 
 	println(y)
 	println(y)
 	println(y)
-	return
+	return x + y
 }
 
 func shortParameters(x int) (y int) {
@@ -141,6 +144,7 @@ func reassignment() {
 	println(descriptive)
 	println(descriptive)
 	println(descriptive)
+	println(x)
 }
 
 func comparator(values []int) {
